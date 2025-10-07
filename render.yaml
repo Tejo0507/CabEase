@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: cabease-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    plan: free
+    envVars:
+      - key: DB_URL
+        value: "jdbc:mysql://cabease-db:3306/cabease_db?useSSL=false"
+      - key: DB_USER
+        fromDatabase:
+          name: cabease-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: cabease-db
+          property: password
+
+  - type: pserv
+    name: cabease-db
+    env: docker
+    repo: https://github.com/render-examples/mysql
+    branch: master # for MySQL 8
+    region: oregon
+    plan: starter
+    envVars:
+      - key: MYSQL_DATABASE
+        value: cabease_db
+      - key: MYSQL_USER
+        value: cabease_user
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 1
