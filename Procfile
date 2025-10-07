@@ -1,0 +1,1 @@
+web: java -jar backend/target/dependency/webapp-runner.jar --port $PORT backend/target/cabease.war
