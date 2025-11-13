@@ -138,6 +138,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.cabease.CabEaseApplication</mainClass>
+                    <jvmArguments>-Duser.timezone=UTC</jvmArguments>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

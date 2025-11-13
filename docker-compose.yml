@@ -3,13 +3,13 @@ services:
     image: postgres:15
     container_name: cabease-postgres
     restart: unless-stopped
-    command: postgres -c timezone=Asia/Kolkata -c log_timezone=Asia/Kolkata
+    command: postgres -c timezone=UTC -c log_timezone=UTC
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-cabease}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cabease_pass}
       - POSTGRES_DB=${POSTGRES_DB:-cabease}
-      - TZ=Asia/Kolkata
-      - PGTZ=Asia/Kolkata
+      - TZ=UTC
+      - PGTZ=UTC
     ports:
       - "5432:5432"
     volumes:
