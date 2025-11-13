@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: cabease
+    env: java
+    plan: free
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -Dserver.port=$PORT -jar target/cabease-1.0.0.jar
+    healthCheckPath: /
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cabease-db
+          property: connectionString
+      - key: GOOGLE_AI_API_KEY
+        value: AIzaSyBRAMqAbONdk_8AUEbmuniEl5Cy9vOaUOM
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: SPRING_MAIL_USERNAME
+        value: tejo.singaporeserver@gmail.com
+      - key: SPRING_MAIL_PASSWORD
+        sync: false
+
+databases:
+  - name: cabease-db
+    plan: free
+    databaseName: cabease
+    user: cabease
