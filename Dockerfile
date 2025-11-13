@@ -10,4 +10,5 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/cabease-1.0.0.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Use shell form to allow environment variable expansion
+CMD java -Duser.timezone=UTC -Dserver.port=${PORT:-8080} -jar app.jar
