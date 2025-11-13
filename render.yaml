@@ -9,10 +9,26 @@ services:
         value: 8080
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: DATABASE_URL
+      - key: DB_HOST
         fromDatabase:
           name: cabease-db
-          property: connectionString
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: cabease-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: cabease-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: cabease-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: cabease-db
+          property: password
       - key: GOOGLE_AI_API_KEY
         value: AIzaSyBRAMqAbONdk_8AUEbmuniEl5Cy9vOaUOM
       - key: GOOGLE_MAPS_API_KEY
