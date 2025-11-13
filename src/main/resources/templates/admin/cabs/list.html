@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Manage Cabs - CabEase</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h2>Manage Cabs</h2>
+        <a href="/admin/cabs/new" class="btn btn-success mb-3">Add New Cab</a>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cab Number</th>
+                        <th>Model</th>
+                        <th>Driver</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="cab : ${cabs}">
+                        <td th:text="${cab.id}"></td>
+                        <td th:text="${cab.cabNumber}"></td>
+                        <td th:text="${cab.model}"></td>
+                        <td th:text="${cab.driver != null ? cab.driver.name : 'No Driver'}"></td>
+                        <td>
+                            <span th:class="${cab.available ? 'badge bg-success' : 'badge bg-danger'}"
+                                  th:text="${cab.available ? 'Available' : 'Unavailable'}"></span>
+                        </td>
+                        <td>
+                            <a th:href="@{'/admin/cabs/edit/' + ${cab.id}}" class="btn btn-sm btn-primary">Edit</a>
+                            <a th:href="@{'/admin/cabs/delete/' + ${cab.id}}" class="btn btn-sm btn-danger"
+                               onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

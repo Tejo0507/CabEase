@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Book Your Ride - CabEase</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places"></script>
+    <style>
+        /* Modern Vehicle Selector Styles */
+        .booking-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .booking-step {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        /* Location Input Styles */
+        .location-inputs {
+            display: grid;
+            gap: 16px;
+        }
+
+        .location-field {
+            position: relative;
+        }
+
+        .location-input {
+            width: 100%;
+            padding: 16px 20px 16px 52px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .location-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+
+        .location-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        /* Vehicle Selection Grid */
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .vehicle-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vehicle-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .vehicle-card.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.05) 0%, rgba(255, 107, 0, 0.02) 100%);
+        }
+
+        .vehicle-card.selected::before {
+            content: "✓";
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .vehicle-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .vehicle-icon {
+            font-size: 32px;
+            margin-right: 12px;
+        }
+
+        .vehicle-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .vehicle-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .vehicle-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vehicle-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .vehicle-eta {
+            display: flex;
+            align-items: center;
+            color: #059669;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .vehicle-eta i {
+            margin-right: 4px;
+        }
+
+        /* Surge Indicator */
+        .surge-indicator {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* Advanced Options */
+        .advanced-options {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .option-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .option-toggle input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .option-label {
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
+        /* Booking Button */
+        .booking-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .btn-book-now {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, #e65100 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-book-now:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-book-now:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-schedule {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-schedule:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .booking-container {
+                padding: 16px;
+            }
+            
+            .vehicle-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .booking-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="booking-container">
+            <!-- Step 1: Location Selection -->
+            <div class="booking-step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Where to?</div>
+                </div>
+                
+                <div class="location-inputs">
+                    <div class="location-field">
+                        <i class="fas fa-circle location-icon" style="color: #059669;"></i>
+                        <input type="text" class="location-input" id="pickupLocation" 
+                               placeholder="Enter pickup location" 
+                               th:field="${booking.pickupLocation}" required>
+                        <input type="hidden" id="pickupLatitude" th:field="${booking.pickupLatitude}">
+                        <input type="hidden" id="pickupLongitude" th:field="${booking.pickupLongitude}">
+                    </div>
+                    
+                    <div class="location-field">
+                        <i class="fas fa-map-marker-alt location-icon" style="color: #dc2626;"></i>
+                        <input type="text" class="location-input" id="dropLocation" 
+                               placeholder="Enter destination" 
+                               th:field="${booking.dropLocation}" required>
+                        <input type="hidden" id="dropLatitude" th:field="${booking.dropLatitude}">
+                        <input type="hidden" id="dropLongitude" th:field="${booking.dropLongitude}">
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary mt-3" id="getEstimatesBtn" onclick="getFareEstimates()">
+                    <i class="fas fa-search me-2"></i>Get Fare Estimates
+                </button>
+            </div>
+
+            <!-- Step 2: Vehicle Selection -->
+            <div class="booking-step" id="vehicleSelectionStep" style="display: none;">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Choose your ride</div>
+                </div>
+                
+                <div class="vehicle-grid" id="vehicleGrid">
+                    <!-- Vehicle cards will be populated dynamically -->
+                </div>
+                
+                <!-- Advanced Options -->
+                <div class="advanced-options">
+                    <h6 style="margin-bottom: 16px; color: var(--secondary);">Preferences</h6>
+                    
+                    <div class="option-toggle">
+                        <input type="checkbox" id="femaleDriverPreferred" th:field="${booking.femaleDriverPreferred}">
+                        <label class="option-label" for="femaleDriverPreferred">
+                            <i class="fas fa-female me-2"></i>Female driver preferred
+                        </label>
+                    </div>
+                    
+                    <div class="option-toggle">
+                        <input type="checkbox" id="allowSharing" th:field="${booking.allowSharing}">
+                        <label class="option-label" for="allowSharing">
+                            <i class="fas fa-users me-2"></i>Allow ride sharing (Save 15%)
+                        </label>
+                    </div>
+                    
+                    <div class="option-toggle">
+                        <input type="checkbox" id="needWheelchairAccess">
+                        <label class="option-label" for="needWheelchairAccess">
+                            <i class="fas fa-wheelchair me-2"></i>Wheelchair accessible vehicle
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Payment & Booking -->
+            <div class="booking-step" id="paymentStep" style="display: none;">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Payment & Book</div>
+                </div>
+                
+                <div class="payment-methods">
+                    <h6 style="margin-bottom: 16px; color: var(--secondary);">Payment Method</h6>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="payment-option">
+                                <input type="radio" name="paymentMethod" value="UPI" id="upi" checked>
+                                <label for="upi" class="payment-label">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>UPI (GPay, PhonePe)</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="payment-option">
+                                <input type="radio" name="paymentMethod" value="CASH" id="cash">
+                                <label for="cash" class="payment-label">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Cash</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="payment-option">
+                                <input type="radio" name="paymentMethod" value="CREDIT_CARD" id="card">
+                                <label for="card" class="payment-label">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Credit/Debit Card</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="payment-option">
+                                <input type="radio" name="paymentMethod" value="WALLET" id="wallet">
+                                <label for="wallet" class="payment-label">
+                                    <i class="fas fa-wallet"></i>
+                                    <span>Digital Wallet</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Booking Actions -->
+                <div class="booking-actions">
+                    <button class="btn-book-now" id="bookNowBtn" onclick="bookRide()">
+                        <span id="bookingText">Book Now</span>
+                    </button>
+                    
+                    <button class="btn-schedule" onclick="showScheduleModal()">
+                        <i class="fas fa-clock me-2"></i>Schedule Later
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden form for submission -->
+        <form th:action="@{/bookings}" method="post" id="bookingForm" style="display: none;">
+            <input type="hidden" th:field="${booking.pickupLocation}">
+            <input type="hidden" th:field="${booking.dropLocation}">
+            <input type="hidden" th:field="${booking.pickupLatitude}">
+            <input type="hidden" th:field="${booking.pickupLongitude}">
+            <input type="hidden" th:field="${booking.dropLatitude}">
+            <input type="hidden" th:field="${booking.dropLongitude}">
+            <input type="hidden" th:field="${booking.distance}">
+            <input type="hidden" th:field="${booking.preferredVehicleType}">
+            <input type="hidden" th:field="${booking.femaleDriverPreferred}">
+            <input type="hidden" th:field="${booking.paymentMethod}">
+            <input type="hidden" th:field="${booking.cab.id}" id="selectedCabId">
+        </form>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Schedule Your Ride</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="scheduledTime" 
+                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd\'T\'HH:mm')}">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Scheduled rides are price-locked and surge-free!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="scheduleRide()">
+                        Schedule Ride
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedVehicleType = null;
+        let fareEstimates = [];
+        let currentDistance = 0;
+        let pickupAutocomplete, dropAutocomplete;
+
+        // Initialize Google Places Autocomplete
+        function initAutocomplete() {
+            const options = {
+                componentRestrictions: { country: 'in' },
+                fields: ['formatted_address', 'geometry', 'name']
+            };
+
+            pickupAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('pickupLocation'), options
+            );
+            dropAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('dropLocation'), options
+            );
+
+            pickupAutocomplete.addListener('place_changed', function() {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('pickupLatitude').value = place.geometry.location.lat();
+                    document.getElementById('pickupLongitude').value = place.geometry.location.lng();
+                    console.log('✅ Pickup coordinates:', place.geometry.location.lat(), place.geometry.location.lng());
+                }
+            });
+
+            dropAutocomplete.addListener('place_changed', function() {
+                const place = dropAutocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('dropLatitude').value = place.geometry.location.lat();
+                    document.getElementById('dropLongitude').value = place.geometry.location.lng();
+                    console.log('✅ Drop coordinates:', place.geometry.location.lat(), place.geometry.location.lng());
+                }
+            });
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', initAutocomplete);
+
+        // Get fare estimates when locations are entered
+        async function getFareEstimates() {
+            const pickup = document.getElementById('pickupLocation').value;
+            const drop = document.getElementById('dropLocation').value;
+            const pickupLat = document.getElementById('pickupLatitude').value;
+            const pickupLng = document.getElementById('pickupLongitude').value;
+            const dropLat = document.getElementById('dropLatitude').value;
+            const dropLng = document.getElementById('dropLongitude').value;
+            
+            if (!pickup || !drop) {
+                alert('Please enter both pickup and drop locations');
+                return;
+            }
+
+            if (!pickupLat || !pickupLng || !dropLat || !dropLng) {
+                alert('Please select locations from the dropdown suggestions to get accurate coordinates');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                // Simulate API call for demo
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Mock data - in real app, call API
+                fareEstimates = [
+                    {
+                        vehicleType: 'BIKE',
+                        displayName: 'Bike',
+                        icon: '🏍️',
+                        description: 'Quick 2-wheeler rides for solo trips',
+                        totalFare: 45.50,
+                        estimatedArrivalTime: 3,
+                        surgeMultiplier: 1.0,
+                        availableCount: 8
+                    },
+                    {
+                        vehicleType: 'AUTO',
+                        displayName: 'Auto',
+                        icon: '🛺',
+                        description: 'Affordable 3-wheeler rickshaws',
+                        totalFare: 78.25,
+                        estimatedArrivalTime: 5,
+                        surgeMultiplier: 1.2,
+                        availableCount: 12
+                    },
+                    {
+                        vehicleType: 'CAB',
+                        displayName: 'Car',
+                        icon: '🚗',
+                        description: 'Comfortable sedans and hatchbacks',
+                        totalFare: 125.75,
+                        estimatedArrivalTime: 7,
+                        surgeMultiplier: 1.5,
+                        availableCount: 6
+                    }
+                ];
+                
+                displayVehicleOptions(fareEstimates);
+                document.getElementById('vehicleSelectionStep').style.display = 'block';
+                
+            } catch (error) {
+                alert('Error getting fare estimates. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Display vehicle options
+        function displayVehicleOptions(estimates) {
+            const grid = document.getElementById('vehicleGrid');
+            grid.innerHTML = '';
+            
+            estimates.forEach(estimate => {
+                const card = createVehicleCard(estimate);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create vehicle card element
+        function createVehicleCard(estimate) {
+            const card = document.createElement('div');
+            card.className = 'vehicle-card';
+            card.setAttribute('data-vehicle-type', estimate.vehicleType);
+            card.onclick = () => selectVehicle(estimate);
+            
+            const surgeHtml = estimate.surgeMultiplier > 1.2 ? 
+                `<span class="surge-indicator">${estimate.surgeMultiplier}x Surge</span>` : '';
+            
+            card.innerHTML = `
+                <div class="vehicle-header">
+                    <div class="vehicle-icon">${estimate.icon}</div>
+                    <div class="vehicle-name">${estimate.displayName}${surgeHtml}</div>
+                </div>
+                <div class="vehicle-description">${estimate.description}</div>
+                <div class="vehicle-details">
+                    <div class="vehicle-price">₹${estimate.totalFare.toFixed(0)}</div>
+                    <div class="vehicle-eta">
+                        <i class="fas fa-clock"></i>${estimate.estimatedArrivalTime} min
+                    </div>
+                </div>
+                <div style="margin-top: 8px; color: #6b7280; font-size: 12px;">
+                    ${estimate.availableCount} available nearby
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Select vehicle
+        function selectVehicle(estimate) {
+            selectedVehicleType = estimate.vehicleType;
+            
+            // Update visual selection
+            document.querySelectorAll('.vehicle-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-vehicle-type="${estimate.vehicleType}"]`).classList.add('selected');
+            
+            // Show payment step
+            document.getElementById('paymentStep').style.display = 'block';
+        }
+
+        // Book ride
+        async function bookRide() {
+            if (!selectedVehicleType) {
+                alert('Please select a vehicle type');
+                return;
+            }
+
+            // Validate coordinates before submission
+            const pickupLat = document.getElementById('pickupLatitude').value;
+            const pickupLng = document.getElementById('pickupLongitude').value;
+            const dropLat = document.getElementById('dropLatitude').value;
+            const dropLng = document.getElementById('dropLongitude').value;
+
+            if (!pickupLat || !pickupLng || !dropLat || !dropLng) {
+                alert('❌ Missing coordinates! Please select locations from the dropdown suggestions.');
+                return;
+            }
+
+            console.log('✅ Submitting booking with coordinates:', {
+                pickup: { lat: pickupLat, lng: pickupLng },
+                drop: { lat: dropLat, lng: dropLng }
+            });
+            
+            const bookBtn = document.getElementById('bookNowBtn');
+            bookBtn.innerHTML = '<div class="spinner"></div>Booking...';
+            bookBtn.disabled = true;
+            
+            try {
+                // Submit the form
+                document.getElementById('bookingForm').submit();
+                
+            } catch (error) {
+                alert('Booking failed. Please try again.');
+                bookBtn.innerHTML = 'Book Now';
+                bookBtn.disabled = false;
+            }
+        }
+
+        // Schedule ride
+        function scheduleRide() {
+            const scheduledTime = document.getElementById('scheduledTime').value;
+            if (!scheduledTime) {
+                alert('Please select date and time');
+                return;
+            }
+            
+            alert('Ride scheduled successfully!');
+            // In real app, call schedule API
+        }
+
+        // Show schedule modal
+        function showScheduleModal() {
+            if (!selectedVehicleType) {
+                alert('Please select a vehicle type first');
+                return;
+            }
+            new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            const btn = document.getElementById('getEstimatesBtn');
+            if (show) {
+                btn.innerHTML = '<div class="spinner"></div>Getting estimates...';
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = '<i class="fas fa-search me-2"></i>Get Fare Estimates';
+                btn.disabled = false;
+            }
+        }
+
+        // Auto-complete for locations (mock)
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationInputs = document.querySelectorAll('.location-input');
+            locationInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    // In real app, implement Google Places autocomplete
+                    console.log('Location changed:', this.value);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

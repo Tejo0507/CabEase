@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Book a Cab - CabEase</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <!-- Premium Booking Header -->
+            <div class="text-center mb-5">
+                <h1 class="chrome-text" style="font-size: 3rem;">
+                    <i class="fas fa-route"></i> Elite Booking Experience
+                </h1>
+                <div class="speedometer mx-auto mb-4"></div>
+                <p style="color: var(--accent); font-size: 1.2rem;">
+                    Configure your premium transportation experience
+                </p>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card carbon-fiber" style="border: 2px solid var(--primary); box-shadow: 0 0 50px rgba(255, 107, 0, 0.3);">
+                        <div class="card-header text-center" style="background: var(--gradient-luxury); border-radius: 23px 23px 0 0;">
+                            <h3 class="mb-0" style="color: var(--dark); font-weight: 900;">
+                                <i class="fas fa-clipboard-list"></i> Premium Booking Form
+                            </h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="@{/bookings}" method="post" class="booking-form" id="bookingForm">
+                                <!-- Hidden fields for coordinates -->
+                                <input type="hidden" id="pickupLatitude" name="pickupLatitude" required>
+                                <input type="hidden" id="pickupLongitude" name="pickupLongitude" required>
+                                <input type="hidden" id="dropLatitude" name="dropLatitude" required>
+                                <input type="hidden" id="dropLongitude" name="dropLongitude" required>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="pickupLocation" class="form-label">Pickup Location</label>
+                                            <select class="form-control" id="pickupLocation" name="pickupLocation" required onchange="geocodeAddress('pickup', this.value)">
+                                                <i class="fas fa-map-marker-alt input-icon"></i>
+                                <option value="">🚗 Select Premium Pickup Location...</option>
+                            <option value="Adambakkam">Adambakkam</option>
+                            <option value="Adyar">Adyar</option>
+                            <option value="Alandur">Alandur</option>
+                            <option value="Alapakkam">Alapakkam</option>
+                            <option value="Alwarpet">Alwarpet</option>
+                            <option value="Alwarthirunagar">Alwarthirunagar</option>
+                            <option value="Ambattur">Ambattur</option>
+                            <option value="Aminjikarai">Aminjikarai</option>
+                            <option value="Anna Nagar">Anna Nagar</option>
+                            <option value="Annanur">Annanur</option>
+                            <option value="Arumbakkam">Arumbakkam</option>
+                            <option value="Ashok Nagar">Ashok Nagar</option>
+                            <option value="Avadi">Avadi</option>
+                            <option value="Ayanavaram">Ayanavaram</option>
+                            <option value="Beemannapettai">Beemannapettai</option>
+                            <option value="Besant Nagar">Besant Nagar</option>
+                            <option value="Basin Bridge">Basin Bridge</option>
+                            <option value="Chepauk">Chepauk</option>
+                            <option value="Chetput">Chetput</option>
+                            <option value="Chintadripet">Chintadripet</option>
+                            <option value="Chitlapakkam">Chitlapakkam</option>
+                            <option value="Choolai">Choolai</option>
+                            <option value="Choolaimedu">Choolaimedu</option>
+                            <option value="Chrompet">Chrompet</option>
+                            <option value="Egmore">Egmore</option>
+                            <option value="Ekkaduthangal">Ekkaduthangal</option>
+                            <option value="Eranavur">Eranavur</option>
+                            <option value="Ennore">Ennore</option>
+                            <option value="Foreshore Estate">Foreshore Estate</option>
+                            <option value="Fort St. George">Fort St. George</option>
+                            <option value="George Town">George Town</option>
+                            <option value="Gopalapuram">Gopalapuram</option>
+                            <option value="Government Estate">Government Estate</option>
+                            <option value="Guindy">Guindy</option>
+                            <option value="Guduvancheri">Guduvancheri</option>
+                            <option value="IIT Madras">IIT Madras</option>
+                            <option value="Injambakkam">Injambakkam</option>
+                            <option value="ICF">ICF</option>
+                            <option value="Iyyapanthangal">Iyyapanthangal</option>
+                            <option value="Jafferkhanpet">Jafferkhanpet</option>
+                            <option value="Kadambathur">Kadambathur</option>
+                            <option value="Karapakkam">Karapakkam</option>
+                            <option value="Kattivakkam">Kattivakkam</option>
+                            <option value="Kattupakkam">Kattupakkam</option>
+                            <option value="Kazhipattur">Kazhipattur</option>
+                            <option value="K.K. Nagar">K.K. Nagar</option>
+                            <option value="Keelkattalai">Keelkattalai</option>
+                            <option value="Kilpauk">Kilpauk</option>
+                            <option value="Kodambakkam">Kodambakkam</option>
+                            <option value="Kodungaiyur">Kodungaiyur</option>
+                            <option value="Kolathur">Kolathur</option>
+                            <option value="Korattur">Korattur</option>
+                            <option value="Korukkupet">Korukkupet</option>
+                            <option value="Kottivakkam">Kottivakkam</option>
+                            <option value="Kotturpuram">Kotturpuram</option>
+                            <option value="Kottur">Kottur</option>
+                            <option value="Kovur">Kovur</option>
+                            <option value="Koyambedu">Koyambedu</option>
+                            <option value="Kundrathur">Kundrathur</option>
+                            <option value="Madhavaram">Madhavaram</option>
+                            <option value="Madhavaram Milk Colony">Madhavaram Milk Colony</option>
+                            <option value="Madipakkam">Madipakkam</option>
+                            <option value="Madambakkam">Madambakkam</option>
+                            <option value="Maduravoyal">Maduravoyal</option>
+                            <option value="Manali">Manali</option>
+                            <option value="Manali New Town">Manali New Town</option>
+                            <option value="Manapakkam">Manapakkam</option>
+                            <option value="Mandaveli">Mandaveli</option>
+                            <option value="Mangadu">Mangadu</option>
+                            <option value="Mannadi">Mannadi</option>
+                            <option value="Mathur">Mathur</option>
+                            <option value="Medavakkam">Medavakkam</option>
+                            <option value="Meenambakkam">Meenambakkam</option>
+                            <option value="MGR Nagar">MGR Nagar</option>
+                            <option value="Minjur">Minjur</option>
+                            <option value="Mogappair">Mogappair</option>
+                            <option value="MKB Nagar">MKB Nagar</option>
+                            <option value="Mount Road">Mount Road</option>
+                            <option value="Moolakadai">Moolakadai</option>
+                            <option value="Moulivakkam">Moulivakkam</option>
+                            <option value="Mugalivakkam">Mugalivakkam</option>
+                            <option value="Mudichur">Mudichur</option>
+                            <option value="Mylapore">Mylapore</option>
+                            <option value="Nandanam">Nandanam</option>
+                            <option value="Nanganallur">Nanganallur</option>
+                            <option value="Nanmangalam">Nanmangalam</option>
+                            <option value="Neelankarai">Neelankarai</option>
+                            <option value="Nemilichery">Nemilichery</option>
+                            <option value="Nesapakkam">Nesapakkam</option>
+                            <option value="Nolambur">Nolambur</option>
+                            <option value="Noombal">Noombal</option>
+                            <option value="Nungambakkam">Nungambakkam</option>
+                            <option value="Otteri">Otteri</option>
+                            <option value="Padi">Padi</option>
+                            <option value="Pakkam">Pakkam</option>
+                            <option value="Palavakkam">Palavakkam</option>
+                            <option value="Pallavaram">Pallavaram</option>
+                            <option value="Pallikaranai">Pallikaranai</option>
+                            <option value="Pammal">Pammal</option>
+                            <option value="Park Town">Park Town</option>
+                            <option value="Parry's Corner">Parry's Corner</option>
+                            <option value="Pattabiram">Pattabiram</option>
+                            <option value="Pattaravakkam">Pattaravakkam</option>
+                            <option value="Pazhavanthangal">Pazhavanthangal</option>
+                            <option value="Peerkankaranai">Peerkankaranai</option>
+                            <option value="Perambur">Perambur</option>
+                            <option value="Peravallur">Peravallur</option>
+                            <option value="Perumbakkam">Perumbakkam</option>
+                            <option value="Perungalathur">Perungalathur</option>
+                            <option value="Perungudi">Perungudi</option>
+                            <option value="Pozhichalur">Pozhichalur</option>
+                            <option value="Poonamallee">Poonamallee</option>
+                            <option value="Porur">Porur</option>
+                            <option value="Pudupet">Pudupet</option>
+                            <option value="Pulianthope">Pulianthope</option>
+                            <option value="Purasaiwalkam">Purasaiwalkam</option>
+                            <option value="Puthagaram">Puthagaram</option>
+                            <option value="Puzhal">Puzhal</option>
+                            <option value="Puzhuthivakkam - Ullagaram">Puzhuthivakkam - Ullagaram</option>
+                            <option value="Raj Bhavan">Raj Bhavan</option>
+                            <option value="Ramavaram">Ramavaram</option>
+                            <option value="Red Hills">Red Hills</option>
+                            <option value="Royapettah">Royapettah</option>
+                            <option value="Royapuram">Royapuram</option>
+                            <option value="Saidapet">Saidapet</option>
+                            <option value="Saligramam">Saligramam</option>
+                            <option value="Santhome">Santhome</option>
+                            <option value="Sembakkam">Sembakkam</option>
+                            <option value="Selaiyur">Selaiyur</option>
+                            <option value="Shenoy Nagar">Shenoy Nagar</option>
+                            <option value="Sholavaram">Sholavaram</option>
+                            <option value="Sholinganallur">Sholinganallur</option>
+                            <option value="Sikkarayapuram">Sikkarayapuram</option>
+                            <option value="Sowcarpet">Sowcarpet</option>
+                            <option value="St.Thomas Mount">St.Thomas Mount</option>
+                            <option value="Surapet">Surapet</option>
+                            <option value="Tambaram">Tambaram</option>
+                            <option value="Teynampet">Teynampet</option>
+                            <option value="Tharamani">Tharamani</option>
+                            <option value="T. Nagar">T. Nagar</option>
+                            <option value="Thirumangalam">Thirumangalam</option>
+                            <option value="Thirumullaivoyal">Thirumullaivoyal</option>
+                            <option value="Thiruneermalai">Thiruneermalai</option>
+                            <option value="Thiruninravur">Thiruninravur</option>
+                            <option value="Thiruvanmiyur">Thiruvanmiyur</option>
+                            <option value="Thiruvallur">Thiruvallur</option>
+                            <option value="Tiruverkadu">Tiruverkadu</option>
+                            <option value="Thiruvotriyur">Thiruvotriyur</option>
+                            <option value="Thuraipakkam">Thuraipakkam</option>
+                            <option value="Tirusulam">Tirusulam</option>
+                            <option value="Tiruvallikeni">Tiruvallikeni</option>
+                            <option value="Tondiarpet">Tondiarpet</option>
+                            <option value="United India Colony">United India Colony</option>
+                            <option value="Vandalur">Vandalur</option>
+                            <option value="Vadapalani">Vadapalani</option>
+                            <option value="Valasaravakkam">Valasaravakkam</option>
+                            <option value="Vallalar Nagar">Vallalar Nagar</option>
+                            <option value="Vanagaram">Vanagaram</option>
+                            <option value="Velachery">Velachery</option>
+                            <option value="Velappanchavadi">Velappanchavadi</option>
+                            <option value="Villivakkam">Villivakkam</option>
+                            <option value="Virugambakkam">Virugambakkam</option>
+                            <option value="Vyasarpadi">Vyasarpadi</option>
+                            <option value="Washermanpet">Washermanpet</option>
+                            </select>
+                                            <i class="fas fa-map-marker-alt input-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="dropLocation" class="form-label">Destination</label>
+                                            <select class="form-control" id="dropLocation" name="dropLocation" required onchange="geocodeAddress('drop', this.value)">
+                                                <option value="">🏁 Select Elite Destination...</option>
+                            <option value="Adambakkam">Adambakkam</option>
+                            <option value="Adyar">Adyar</option>
+                            <option value="Alandur">Alandur</option>
+                            <option value="Alapakkam">Alapakkam</option>
+                            <option value="Alwarpet">Alwarpet</option>
+                            <option value="Alwarthirunagar">Alwarthirunagar</option>
+                            <option value="Ambattur">Ambattur</option>
+                            <option value="Aminjikarai">Aminjikarai</option>
+                            <option value="Anna Nagar">Anna Nagar</option>
+                            <option value="Annanur">Annanur</option>
+                            <option value="Arumbakkam">Arumbakkam</option>
+                            <option value="Ashok Nagar">Ashok Nagar</option>
+                            <option value="Avadi">Avadi</option>
+                            <option value="Ayanavaram">Ayanavaram</option>
+                            <option value="Beemannapettai">Beemannapettai</option>
+                            <option value="Besant Nagar">Besant Nagar</option>
+                            <option value="Basin Bridge">Basin Bridge</option>
+                            <option value="Chepauk">Chepauk</option>
+                            <option value="Chetput">Chetput</option>
+                            <option value="Chintadripet">Chintadripet</option>
+                            <option value="Chitlapakkam">Chitlapakkam</option>
+                            <option value="Choolai">Choolai</option>
+                            <option value="Choolaimedu">Choolaimedu</option>
+                            <option value="Chrompet">Chrompet</option>
+                            <option value="Egmore">Egmore</option>
+                            <option value="Ekkaduthangal">Ekkaduthangal</option>
+                            <option value="Eranavur">Eranavur</option>
+                            <option value="Ennore">Ennore</option>
+                            <option value="Foreshore Estate">Foreshore Estate</option>
+                            <option value="Fort St. George">Fort St. George</option>
+                            <option value="George Town">George Town</option>
+                            <option value="Gopalapuram">Gopalapuram</option>
+                            <option value="Government Estate">Government Estate</option>
+                            <option value="Guindy">Guindy</option>
+                            <option value="Guduvancheri">Guduvancheri</option>
+                            <option value="IIT Madras">IIT Madras</option>
+                            <option value="Injambakkam">Injambakkam</option>
+                            <option value="ICF">ICF</option>
+                            <option value="Iyyapanthangal">Iyyapanthangal</option>
+                            <option value="Jafferkhanpet">Jafferkhanpet</option>
+                            <option value="Kadambathur">Kadambathur</option>
+                            <option value="Karapakkam">Karapakkam</option>
+                            <option value="Kattivakkam">Kattivakkam</option>
+                            <option value="Kattupakkam">Kattupakkam</option>
+                            <option value="Kazhipattur">Kazhipattur</option>
+                            <option value="K.K. Nagar">K.K. Nagar</option>
+                            <option value="Keelkattalai">Keelkattalai</option>
+                            <option value="Kilpauk">Kilpauk</option>
+                            <option value="Kodambakkam">Kodambakkam</option>
+                            <option value="Kodungaiyur">Kodungaiyur</option>
+                            <option value="Kolathur">Kolathur</option>
+                            <option value="Korattur">Korattur</option>
+                            <option value="Korukkupet">Korukkupet</option>
+                            <option value="Kottivakkam">Kottivakkam</option>
+                            <option value="Kotturpuram">Kotturpuram</option>
+                            <option value="Kottur">Kottur</option>
+                            <option value="Kovur">Kovur</option>
+                            <option value="Koyambedu">Koyambedu</option>
+                            <option value="Kundrathur">Kundrathur</option>
+                            <option value="Madhavaram">Madhavaram</option>
+                            <option value="Madhavaram Milk Colony">Madhavaram Milk Colony</option>
+                            <option value="Madipakkam">Madipakkam</option>
+                            <option value="Madambakkam">Madambakkam</option>
+                            <option value="Maduravoyal">Maduravoyal</option>
+                            <option value="Manali">Manali</option>
+                            <option value="Manali New Town">Manali New Town</option>
+                            <option value="Manapakkam">Manapakkam</option>
+                            <option value="Mandaveli">Mandaveli</option>
+                            <option value="Mangadu">Mangadu</option>
+                            <option value="Mannadi">Mannadi</option>
+                            <option value="Mathur">Mathur</option>
+                            <option value="Medavakkam">Medavakkam</option>
+                            <option value="Meenambakkam">Meenambakkam</option>
+                            <option value="MGR Nagar">MGR Nagar</option>
+                            <option value="Minjur">Minjur</option>
+                            <option value="Mogappair">Mogappair</option>
+                            <option value="MKB Nagar">MKB Nagar</option>
+                            <option value="Mount Road">Mount Road</option>
+                            <option value="Moolakadai">Moolakadai</option>
+                            <option value="Moulivakkam">Moulivakkam</option>
+                            <option value="Mugalivakkam">Mugalivakkam</option>
+                            <option value="Mudichur">Mudichur</option>
+                            <option value="Mylapore">Mylapore</option>
+                            <option value="Nandanam">Nandanam</option>
+                            <option value="Nanganallur">Nanganallur</option>
+                            <option value="Nanmangalam">Nanmangalam</option>
+                            <option value="Neelankarai">Neelankarai</option>
+                            <option value="Nemilichery">Nemilichery</option>
+                            <option value="Nesapakkam">Nesapakkam</option>
+                            <option value="Nolambur">Nolambur</option>
+                            <option value="Noombal">Noombal</option>
+                            <option value="Nungambakkam">Nungambakkam</option>
+                            <option value="Otteri">Otteri</option>
+                            <option value="Padi">Padi</option>
+                            <option value="Pakkam">Pakkam</option>
+                            <option value="Palavakkam">Palavakkam</option>
+                            <option value="Pallavaram">Pallavaram</option>
+                            <option value="Pallikaranai">Pallikaranai</option>
+                            <option value="Pammal">Pammal</option>
+                            <option value="Park Town">Park Town</option>
+                            <option value="Parry's Corner">Parry's Corner</option>
+                            <option value="Pattabiram">Pattabiram</option>
+                            <option value="Pattaravakkam">Pattaravakkam</option>
+                            <option value="Pazhavanthangal">Pazhavanthangal</option>
+                            <option value="Peerkankaranai">Peerkankaranai</option>
+                            <option value="Perambur">Perambur</option>
+                            <option value="Peravallur">Peravallur</option>
+                            <option value="Perumbakkam">Perumbakkam</option>
+                            <option value="Perungalathur">Perungalathur</option>
+                            <option value="Perungudi">Perungudi</option>
+                            <option value="Pozhichalur">Pozhichalur</option>
+                            <option value="Poonamallee">Poonamallee</option>
+                            <option value="Porur">Porur</option>
+                            <option value="Pudupet">Pudupet</option>
+                            <option value="Pulianthope">Pulianthope</option>
+                            <option value="Purasaiwalkam">Purasaiwalkam</option>
+                            <option value="Puthagaram">Puthagaram</option>
+                            <option value="Puzhal">Puzhal</option>
+                            <option value="Puzhuthivakkam - Ullagaram">Puzhuthivakkam - Ullagaram</option>
+                            <option value="Raj Bhavan">Raj Bhavan</option>
+                            <option value="Ramavaram">Ramavaram</option>
+                            <option value="Red Hills">Red Hills</option>
+                            <option value="Royapettah">Royapettah</option>
+                            <option value="Royapuram">Royapuram</option>
+                            <option value="Saidapet">Saidapet</option>
+                            <option value="Saligramam">Saligramam</option>
+                            <option value="Santhome">Santhome</option>
+                            <option value="Sembakkam">Sembakkam</option>
+                            <option value="Selaiyur">Selaiyur</option>
+                            <option value="Shenoy Nagar">Shenoy Nagar</option>
+                            <option value="Sholavaram">Sholavaram</option>
+                            <option value="Sholinganallur">Sholinganallur</option>
+                            <option value="Sikkarayapuram">Sikkarayapuram</option>
+                            <option value="Sowcarpet">Sowcarpet</option>
+                            <option value="St.Thomas Mount">St.Thomas Mount</option>
+                            <option value="Surapet">Surapet</option>
+                            <option value="Tambaram">Tambaram</option>
+                            <option value="Teynampet">Teynampet</option>
+                            <option value="Tharamani">Tharamani</option>
+                            <option value="T. Nagar">T. Nagar</option>
+                            <option value="Thirumangalam">Thirumangalam</option>
+                            <option value="Thirumullaivoyal">Thirumullaivoyal</option>
+                            <option value="Thiruneermalai">Thiruneermalai</option>
+                            <option value="Thiruninravur">Thiruninravur</option>
+                            <option value="Thiruvanmiyur">Thiruvanmiyur</option>
+                            <option value="Thiruvallur">Thiruvallur</option>
+                            <option value="Tiruverkadu">Tiruverkadu</option>
+                            <option value="Thiruvotriyur">Thiruvotriyur</option>
+                            <option value="Thuraipakkam">Thuraipakkam</option>
+                            <option value="Tirusulam">Tirusulam</option>
+                            <option value="Tiruvallikeni">Tiruvallikeni</option>
+                            <option value="Tondiarpet">Tondiarpet</option>
+                            <option value="United India Colony">United India Colony</option>
+                            <option value="Vandalur">Vandalur</option>
+                            <option value="Vadapalani">Vadapalani</option>
+                            <option value="Valasaravakkam">Valasaravakkam</option>
+                            <option value="Vallalar Nagar">Vallalar Nagar</option>
+                            <option value="Vanagaram">Vanagaram</option>
+                            <option value="Velachery">Velachery</option>
+                            <option value="Velappanchavadi">Velappanchavadi</option>
+                            <option value="Villivakkam">Villivakkam</option>
+                            <option value="Virugambakkam">Virugambakkam</option>
+                            <option value="Vyasarpadi">Vyasarpadi</option>
+                            <option value="Washermanpet">Washermanpet</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+                                </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="bookingDateTime" class="form-label">Elite Departure Time</label>
+                                            <input type="datetime-local" class="form-control" id="bookingDateTime" name="bookingDateTime" required>
+                                            <i class="fas fa-clock input-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="cabId" class="form-label">Select Premium Vehicle</label>
+                                            <select class="form-control" id="cabId" name="cab.id" required>
+                                                <option value="">🏎️ Choose your elite ride...</option>
+                                                <option th:each="cab : ${availableCabs}" th:value="${cab.id}" 
+                                                        th:text="'🚗 ' + ${cab.model} + ' (' + ${cab.cabNumber} + ') - Driver: ' + ${cab.driver.name}"></option>
+                                            </select>
+                                            <i class="fas fa-car input-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="distance" class="form-label">Distance (km)</label>
+                                            <input type="number" step="0.1" class="form-control" id="distance" name="distance" 
+                                                   placeholder="Estimated distance" required>
+                                            <i class="fas fa-route input-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 d-flex align-items-end">
+                                        <div class="speedometer" style="transform: scale(0.7);"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Premium Features Selection -->
+                                <div class="row mt-4 pt-4" style="border-top: 2px solid rgba(255, 107, 0, 0.3);">
+                                    <div class="col-12">
+                                        <h5 class="chrome-text mb-3">
+                                            <i class="fas fa-crown"></i> Premium Features
+                                        </h5>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="airConditioning" checked disabled>
+                                                    <label class="form-check-label" for="airConditioning" style="color: var(--accent);">
+                                                        <i class="fas fa-snowflake"></i> Climate Control
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="wifiAccess" checked disabled>
+                                                    <label class="form-check-label" for="wifiAccess" style="color: var(--accent);">
+                                                        <i class="fas fa-wifi"></i> Premium WiFi
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="premiumSound" checked disabled>
+                                                    <label class="form-check-label" for="premiumSound" style="color: var(--accent);">
+                                                        <i class="fas fa-music"></i> Premium Audio
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="row mt-5">
+                                    <div class="col-12 text-center">
+                                        <button type="submit" class="btn btn-cta racing-stripes me-3">
+                                            <i class="fas fa-rocket"></i> Book Elite Ride
+                                        </button>
+                                        <a href="/bookings" class="btn" style="background: var(--gradient-carbon); border: 2px solid var(--secondary); color: white; padding: 18px 35px; border-radius: 30px;">
+                                            <i class="fas fa-times-circle"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <!-- Status Lights -->
+                                <div class="row mt-4">
+                                    <div class="col-12 text-center">
+                                        <div class="d-flex justify-content-center gap-3">
+                                            <div class="dashboard-light fuel" title="Booking System"></div>
+                                            <div class="dashboard-light battery" title="Fleet Status"></div>
+                                            <div class="dashboard-light engine" title="Driver Availability"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Google Maps Geocoding API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places"></script>
+    <script>
+        const geocoder = new google.maps.Geocoder();
+        
+        // Function to geocode address and store coordinates
+        function geocodeAddress(type, locationName) {
+            if (!locationName) {
+                console.warn(`${type} location is empty`);
+                return;
+            }
+            
+            // Add "Chennai, Tamil Nadu, India" to get accurate results
+            const fullAddress = locationName + ", Chennai, Tamil Nadu, India";
+            
+            console.log(`Geocoding ${type}: ${fullAddress}`);
+            
+            geocoder.geocode({ address: fullAddress }, function(results, status) {
+                if (status === 'OK') {
+                    const lat = results[0].geometry.location.lat();
+                    const lng = results[0].geometry.location.lng();
+                    
+                    console.log(`✅ ${type} coordinates:`, lat, lng);
+                    
+                    if (type === 'pickup') {
+                        document.getElementById('pickupLatitude').value = lat;
+                        document.getElementById('pickupLongitude').value = lng;
+                    } else if (type === 'drop') {
+                        document.getElementById('dropLatitude').value = lat;
+                        document.getElementById('dropLongitude').value = lng;
+                    }
+                } else {
+                    console.error(`❌ Geocoding failed for ${type}: ${status}`);
+                    alert(`Failed to get coordinates for ${locationName}. Please try selecting again or choose a different location.`);
+                }
+            });
+        }
+        
+        // Validate form before submission
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            const pickupLat = document.getElementById('pickupLatitude').value;
+            const pickupLng = document.getElementById('pickupLongitude').value;
+            const dropLat = document.getElementById('dropLatitude').value;
+            const dropLng = document.getElementById('dropLongitude').value;
+            
+            if (!pickupLat || !pickupLng || !dropLat || !dropLng) {
+                e.preventDefault();
+                alert('⚠️ Please wait for location coordinates to be loaded. If this persists, try selecting the locations again.');
+                return false;
+            }
+            
+            console.log('Form validation passed. Submitting with coordinates:', {
+                pickup: { lat: pickupLat, lng: pickupLng },
+                drop: { lat: dropLat, lng: dropLng }
+            });
+        });
+    </script>
+</body>
+</html>

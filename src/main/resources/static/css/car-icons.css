@@ -1,0 +1,206 @@
+/* Car-themed Icon Enhancements */
+
+/* Custom car icons using CSS */
+.car-icon {
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    position: relative;
+    background: var(--gradient-racing);
+    border-radius: 15px 15px 5px 5px;
+    margin: 20px;
+    animation: carMove 4s ease-in-out infinite;
+}
+
+.car-icon::before {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: var(--dark);
+    border-radius: 50%;
+    bottom: -7px;
+    left: 8px;
+    box-shadow: 35px 0 0 var(--dark);
+    animation: wheelSpin 1s linear infinite;
+}
+
+.car-icon::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    top: 5px;
+    left: 8px;
+    box-shadow: 25px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes carMove {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(20px); }
+}
+
+@keyframes wheelSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Taxi icon */
+.taxi-icon {
+    position: relative;
+    display: inline-block;
+    font-size: 3rem;
+    color: var(--accent);
+    animation: taxiGlow 2s ease-in-out infinite alternate;
+}
+
+.taxi-icon::before {
+    content: '🚕';
+    position: absolute;
+    top: -5px;
+    left: 0;
+    font-size: 3.2rem;
+    z-index: -1;
+    filter: blur(3px);
+    opacity: 0.7;
+}
+
+@keyframes taxiGlow {
+    0% { 
+        filter: drop-shadow(0 0 10px var(--accent));
+        transform: scale(1);
+    }
+    100% { 
+        filter: drop-shadow(0 0 25px var(--accent));
+        transform: scale(1.05);
+    }
+}
+
+/* Racing stripes effect */
+.racing-stripes {
+    position: relative;
+    background: var(--gradient-racing);
+    overflow: hidden;
+}
+
+.racing-stripes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.1) 10px,
+        rgba(255, 255, 255, 0.1) 20px
+    );
+    animation: stripesMove 2s linear infinite;
+}
+
+@keyframes stripesMove {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Speedometer effect */
+.speedometer {
+    width: 100px;
+    height: 100px;
+    border: 5px solid var(--primary);
+    border-radius: 50%;
+    position: relative;
+    background: var(--gradient-carbon);
+    margin: 20px auto;
+}
+
+.speedometer::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 40px;
+    background: var(--accent);
+    top: 50%;
+    left: 50%;
+    transform-origin: bottom center;
+    transform: translateX(-50%) translateY(-100%) rotate(45deg);
+    animation: needleMove 3s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--accent);
+}
+
+.speedometer::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px var(--accent);
+}
+
+@keyframes needleMove {
+    0%, 100% { transform: translateX(-50%) translateY(-100%) rotate(-45deg); }
+    50% { transform: translateX(-50%) translateY(-100%) rotate(135deg); }
+}
+
+/* Car dashboard lights */
+.dashboard-light {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 5px;
+    animation: dashboardBlink 2s ease-in-out infinite;
+}
+
+.dashboard-light.engine { 
+    background: var(--danger);
+    box-shadow: 0 0 10px var(--danger);
+}
+
+.dashboard-light.oil { 
+    background: var(--warning);
+    box-shadow: 0 0 10px var(--warning);
+}
+
+.dashboard-light.battery { 
+    background: var(--info);
+    box-shadow: 0 0 10px var(--info);
+}
+
+.dashboard-light.fuel { 
+    background: var(--success);
+    box-shadow: 0 0 10px var(--success);
+}
+
+@keyframes dashboardBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Chrome effect for premium elements */
+.chrome-text {
+    background: var(--gradient-chrome);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(189, 195, 199, 0.8);
+    font-weight: 900;
+}
+
+/* Carbon fiber texture */
+.carbon-fiber {
+    background: 
+        radial-gradient(circle at 25% 25%, #444 2%, transparent 2%),
+        radial-gradient(circle at 75% 75%, #444 2%, transparent 2%),
+        var(--gradient-carbon);
+    background-size: 20px 20px;
+}

@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Ride - CabEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Flatpickr CSS for datetime picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        :root {
+            --primary-dark: #1a1a2e;
+            --secondary-dark: #16213e;
+            --accent-dark: #0f3460;
+            --gold-accent: #fbbf24;
+            --teal-accent: #14b8a6;
+            --orange-accent: #ff6b35;
+            --success-green: #22c55e;
+            --error-red: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 50%, var(--accent-dark) 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Luxury Header */
+        .luxury-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .logo-text {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-nav-icons {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .feature-icon-link {
+            width: 48px;
+            height: 48px;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            font-size: 1.25rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon-link::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+        }
+
+        .feature-icon-link:hover::before {
+            left: 100%;
+        }
+
+        .feature-icon-link::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-icon-link:hover::after {
+            opacity: 1;
+        }
+
+        .feature-icon-link:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        .feature-icon-link.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(20, 184, 166, 0.2));
+            border-color: var(--gold-accent);
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-email {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+        }
+
+        .logout-btn {
+            padding: 0.625rem 1.25rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error-red);
+            transform: translateY(-2px);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--gold-accent);
+        }
+
+        /* Schedule Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold-accent);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .vehicle-option {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .vehicle-option:hover {
+            border-color: var(--gold-accent);
+            background: rgba(251, 191, 36, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .vehicle-option.selected {
+            border: 2px solid var(--gold-accent);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(20, 184, 166, 0.2) 100%);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .vehicle-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .vehicle-name {
+            font-weight: 600;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .schedule-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .schedule-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5);
+        }
+
+        .schedule-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Scheduled Rides List */
+        .rides-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .tab.active {
+            color: var(--gold-accent);
+            border-bottom-color: var(--gold-accent);
+        }
+
+        .rides-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .ride-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .ride-card:hover {
+            border-color: var(--gold-accent);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .ride-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .ride-time {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .ride-status {
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-scheduled {
+            background: rgba(20, 184, 166, 0.2);
+            color: var(--teal-accent);
+            border: 1px solid var(--teal-accent);
+        }
+
+        .status-confirmed {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-green);
+            border: 1px solid var(--success-green);
+        }
+
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error-red);
+            border: 1px solid var(--error-red);
+        }
+
+        .status-completed {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--gold-accent);
+            border: 1px solid var(--gold-accent);
+        }
+
+        .ride-route {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .location {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+        }
+
+        .location i {
+            margin-top: 0.25rem;
+            color: #667eea;
+        }
+
+        .location-text {
+            flex: 1;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+
+        .ride-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .ride-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+
+        .ride-detail i {
+            color: var(--gold-accent);
+        }
+
+        .ride-fare {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gold-accent);
+        }
+
+        .ride-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+
+        .modify-btn {
+            background: var(--teal-accent);
+            color: var(--primary-dark);
+        }
+
+        .modify-btn:hover {
+            background: var(--gold-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .cancel-btn {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: var(--orange-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--glass-border);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--glass-border);
+            border-top-color: var(--gold-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Success Message */
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-green);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--success-green);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .success-message i {
+            font-size: 1.25rem;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error-red);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--error-red);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .error-message i {
+            font-size: 1.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .vehicle-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .vehicle-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Luxury Header -->
+    <header class="luxury-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <i class="fas fa-taxi logo-icon"></i>
+                <span class="logo-text">CabEase</span>
+            </div>
+            
+            <nav class="feature-nav-icons">
+                <a href="/booking-dashboard" class="feature-icon-link" title="Book Ride">
+                    <i class="fas fa-car"></i>
+                </a>
+                <a href="/fare-calculator" class="feature-icon-link" title="Fare Calculator">
+                    <i class="fas fa-calculator"></i>
+                </a>
+                <a href="/schedule-ride" class="feature-icon-link active" title="Schedule Ride">
+                    <i class="fas fa-calendar-plus"></i>
+                </a>
+                <a href="/analytics-dashboard" class="feature-icon-link" title="Analytics">
+                    <i class="fas fa-chart-line"></i>
+                </a>
+                <a href="/wallet" class="feature-icon-link" title="Wallet">
+                    <i class="fas fa-wallet"></i>
+                </a>
+                <a href="/payment-methods" class="feature-icon-link" title="Payment Methods">
+                    <i class="fas fa-credit-card"></i>
+                </a>
+                <a href="/profile" class="feature-icon-link" title="Profile">
+                    <i class="fas fa-user-circle"></i>
+                </a>
+            </nav>
+            
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" th:if="${user != null}" th:text="${user.name}">User Name</div>
+                    <div class="user-name" th:if="${user == null}" th:text="${#authentication.principal.username}">User Name</div>
+                    <div class="user-email" th:if="${user != null}" th:text="${user.email}">user@email.com</div>
+                    <div class="user-email" th:if="${user == null}" th:text="${#authentication.name}">user@email.com</div>
+                </div>
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div class="main-layout">
+            <!-- Schedule Form Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-clock"></i>
+                    Schedule New Ride
+                </h2>
+
+                <div id="messageContainer"></div>
+
+                <form id="scheduleForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt" style="color: #48bb78;"></i> Pickup Location
+                        </label>
+                        <input type="text" id="pickupLocation" class="form-input" 
+                               placeholder="Enter pickup location" required>
+                        <input type="hidden" id="pickupLat">
+                        <input type="hidden" id="pickupLng">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt" style="color: #f56565;"></i> Drop Location
+                        </label>
+                        <input type="text" id="dropLocation" class="form-input" 
+                               placeholder="Enter drop location" required>
+                        <input type="hidden" id="dropLat">
+                        <input type="hidden" id="dropLng">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Scheduled Date & Time
+                        </label>
+                        <input type="text" id="scheduledTime" class="form-input" 
+                               placeholder="Select date and time" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-car"></i> Vehicle Type
+                        </label>
+                        <div class="vehicle-grid">
+                            <div class="vehicle-option" data-vehicle="CAB">
+                                <div class="vehicle-icon">🚗</div>
+                                <div class="vehicle-name">Cab</div>
+                            </div>
+                            <div class="vehicle-option" data-vehicle="SUV">
+                                <div class="vehicle-icon">🚙</div>
+                                <div class="vehicle-name">SUV</div>
+                            </div>
+                            <div class="vehicle-option" data-vehicle="BIKE">
+                                <div class="vehicle-icon">🏍️</div>
+                                <div class="vehicle-name">Bike</div>
+                            </div>
+                            <div class="vehicle-option" data-vehicle="AUTO">
+                                <div class="vehicle-icon">🛺</div>
+                                <div class="vehicle-name">Auto</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="vehicleType" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-users"></i> Number of Passengers
+                        </label>
+                        <input type="number" id="passengerCount" class="form-input" 
+                               min="1" max="6" value="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Special Instructions (Optional)
+                        </label>
+                        <textarea id="specialInstructions" class="form-input form-textarea" 
+                                  placeholder="Any special requests or instructions..."></textarea>
+                    </div>
+
+                    <button type="submit" class="schedule-btn" id="scheduleBtn">
+                        <i class="fas fa-calendar-check"></i> Schedule Ride
+                    </button>
+                </form>
+            </div>
+
+            <!-- Scheduled Rides List Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i>
+                    My Scheduled Rides
+                </h2>
+
+                <div class="rides-tabs">
+                    <button class="tab active" data-tab="upcoming">
+                        Upcoming (<span id="upcomingCount">0</span>)
+                    </button>
+                    <button class="tab" data-tab="past">
+                        Past
+                    </button>
+                </div>
+
+                <div id="ridesContainer" class="rides-container">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading scheduled rides...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places"></script>
+
+    <script>
+        // Initialize variables
+        let pickupAutocomplete, dropAutocomplete;
+        let selectedVehicleType = null;
+        let currentTab = 'upcoming';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initAutocomplete();
+            initDateTimePicker();
+            initVehicleSelection();
+            initTabs();
+            loadScheduledRides();
+        });
+
+        // Initialize Google Places Autocomplete
+        function initAutocomplete() {
+            const pickupInput = document.getElementById('pickupLocation');
+            const dropInput = document.getElementById('dropLocation');
+
+            pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput);
+            dropAutocomplete = new google.maps.places.Autocomplete(dropInput);
+
+            pickupAutocomplete.addListener('place_changed', function() {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('pickupLat').value = place.geometry.location.lat();
+                    document.getElementById('pickupLng').value = place.geometry.location.lng();
+                }
+            });
+
+            dropAutocomplete.addListener('place_changed', function() {
+                const place = dropAutocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('dropLat').value = place.geometry.location.lat();
+                    document.getElementById('dropLng').value = place.geometry.location.lng();
+                }
+            });
+        }
+
+        // Initialize datetime picker
+        function initDateTimePicker() {
+            flatpickr("#scheduledTime", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                minDate: "today",
+                maxDate: new Date().fp_incr(30), // 30 days from now
+                time_24hr: false,
+                minuteIncrement: 15
+            });
+        }
+
+        // Initialize vehicle selection
+        function initVehicleSelection() {
+            const vehicleOptions = document.querySelectorAll('.vehicle-option');
+            
+            vehicleOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    vehicleOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Set vehicle type
+                    selectedVehicleType = this.dataset.vehicle;
+                    document.getElementById('vehicleType').value = selectedVehicleType;
+                });
+            });
+        }
+
+        // Initialize tabs
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Load rides for selected tab
+                    currentTab = this.dataset.tab;
+                    loadScheduledRides();
+                });
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('scheduleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = '';
+            
+            // Validate form
+            if (!selectedVehicleType) {
+                showError('Please select a vehicle type');
+                return;
+            }
+            
+            const pickupLat = document.getElementById('pickupLat').value;
+            const pickupLng = document.getElementById('pickupLng').value;
+            const dropLat = document.getElementById('dropLat').value;
+            const dropLng = document.getElementById('dropLng').value;
+            
+            if (!pickupLat || !dropLat) {
+                showError('Please select valid locations from the dropdown');
+                return;
+            }
+            
+            // Prepare data
+            const scheduledTimeStr = document.getElementById('scheduledTime').value;
+            const scheduledTime = new Date(scheduledTimeStr).toISOString().slice(0, 19);
+            
+            const data = {
+                pickupLocation: document.getElementById('pickupLocation').value,
+                pickupLatitude: parseFloat(pickupLat),
+                pickupLongitude: parseFloat(pickupLng),
+                dropLocation: document.getElementById('dropLocation').value,
+                dropLatitude: parseFloat(dropLat),
+                dropLongitude: parseFloat(dropLng),
+                scheduledTime: scheduledTime,
+                vehicleType: selectedVehicleType,
+                passengerCount: parseInt(document.getElementById('passengerCount').value),
+                specialInstructions: document.getElementById('specialInstructions').value
+            };
+            
+            // Disable submit button
+            const submitBtn = document.getElementById('scheduleBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scheduling...';
+            
+            try {
+                const response = await fetch('/api/v1/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Ride scheduled successfully!');
+                    
+                    // Reset form
+                    document.getElementById('scheduleForm').reset();
+                    document.querySelectorAll('.vehicle-option').forEach(opt => opt.classList.remove('selected'));
+                    selectedVehicleType = null;
+                    document.getElementById('pickupLat').value = '';
+                    document.getElementById('pickupLng').value = '';
+                    document.getElementById('dropLat').value = '';
+                    document.getElementById('dropLng').value = '';
+                    
+                    // Reload scheduled rides
+                    loadScheduledRides();
+                } else {
+                    showError(result.error || 'Failed to schedule ride');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('An error occurred. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Schedule Ride';
+            }
+        });
+
+        // Load scheduled rides
+        async function loadScheduledRides() {
+            const ridesContainer = document.getElementById('ridesContainer');
+            ridesContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading scheduled rides...</p>
+                </div>
+            `;
+            
+            try {
+                const endpoint = currentTab === 'upcoming' ? '/api/v1/schedule/upcoming' : '/api/v1/schedule/past';
+                const response = await fetch(endpoint);
+                
+                if (response.ok) {
+                    const rides = await response.json();
+                    
+                    if (rides.length === 0) {
+                        ridesContainer.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <h3>No ${currentTab} rides</h3>
+                                <p>You don't have any ${currentTab} scheduled rides.</p>
+                            </div>
+                        `;
+                    } else {
+                        ridesContainer.innerHTML = rides.map(ride => createRideCard(ride)).join('');
+                        
+                        // Update upcoming count
+                        if (currentTab === 'upcoming') {
+                            document.getElementById('upcomingCount').textContent = rides.length;
+                        }
+                    }
+                } else {
+                    ridesContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Failed to load rides</h3>
+                            <p>Please try again later.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading rides:', error);
+                ridesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Error loading rides</h3>
+                        <p>Please check your connection and try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Create ride card HTML
+        function createRideCard(ride) {
+            const scheduledDate = new Date(ride.scheduledTime);
+            const formattedDate = scheduledDate.toLocaleDateString('en-US', { 
+                weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' 
+            });
+            const formattedTime = scheduledDate.toLocaleTimeString('en-US', { 
+                hour: '2-digit', minute: '2-digit' 
+            });
+            
+            const statusClass = `status-${ride.status.toLowerCase()}`;
+            const canModify = ride.status === 'SCHEDULED' || ride.status === 'CONFIRMED';
+            
+            const vehicleIcons = {
+                'CAB': '🚗',
+                'SUV': '🚙',
+                'BIKE': '🏍️',
+                'AUTO': '🛺',
+                'MICRO': '🚖',
+                'LUXURY': '🚕'
+            };
+            
+            return `
+                <div class="ride-card">
+                    <div class="ride-header">
+                        <div>
+                            <div class="ride-time">${formattedDate}</div>
+                            <div style="color: var(--gold-accent); font-size: 1.25rem; font-weight: 600; margin-top: 0.25rem;">
+                                ${formattedTime}
+                            </div>
+                        </div>
+                        <span class="ride-status ${statusClass}">${ride.status}</span>
+                    </div>
+                    
+                    <div class="ride-route">
+                        <div class="location">
+                            <i class="fas fa-circle" style="color: #48bb78; font-size: 0.75rem;"></i>
+                            <div class="location-text">${ride.pickupLocation}</div>
+                        </div>
+                        <div class="location">
+                            <i class="fas fa-circle" style="color: #f56565; font-size: 0.75rem;"></i>
+                            <div class="location-text">${ride.dropLocation}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ride-details">
+                        <div class="ride-detail">
+                            <i class="fas fa-car"></i>
+                            <span>${vehicleIcons[ride.vehicleType] || '🚗'} ${ride.vehicleType}</span>
+                        </div>
+                        <div class="ride-detail">
+                            <i class="fas fa-users"></i>
+                            <span>${ride.passengerCount} ${ride.passengerCount === 1 ? 'Passenger' : 'Passengers'}</span>
+                        </div>
+                        <div class="ride-detail">
+                            <i class="fas fa-rupee-sign"></i>
+                            <span class="ride-fare">₹${parseFloat(ride.estimatedFare).toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    ${ride.specialInstructions ? `
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; border: 1px solid var(--glass-border);">
+                            <div style="font-size: 0.75rem; font-weight: 600; color: var(--gold-accent); margin-bottom: 0.25rem;">
+                                <i class="fas fa-comment"></i> SPECIAL INSTRUCTIONS
+                            </div>
+                            <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);">${ride.specialInstructions}</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${canModify ? `
+                        <div class="ride-actions">
+                            <button class="action-btn modify-btn" onclick="modifyRide(${ride.id})">
+                                <i class="fas fa-edit"></i> Modify
+                            </button>
+                            <button class="action-btn cancel-btn" onclick="cancelRide(${ride.id})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    ${ride.status === 'CANCELLED' && ride.cancellationReason ? `
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(239, 68, 68, 0.2); border-radius: 8px; border: 1px solid var(--error-red); color: var(--error-red);">
+                            <strong>Cancelled:</strong> ${ride.cancellationReason}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Modify ride function
+        async function modifyRide(rideId) {
+            const newTime = prompt('Enter new scheduled time (YYYY-MM-DD HH:MM):');
+            if (!newTime) return;
+            
+            try {
+                const scheduledTime = new Date(newTime).toISOString().slice(0, 19);
+                
+                const response = await fetch(`/api/v1/schedule/${rideId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ scheduledTime })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Ride modified successfully!');
+                    loadScheduledRides();
+                } else {
+                    showError(result.error || 'Failed to modify ride');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('An error occurred. Please try again.');
+            }
+        }
+
+        // Cancel ride function
+        async function cancelRide(rideId) {
+            const reason = prompt('Reason for cancellation (optional):');
+            if (reason === null) return; // User clicked cancel
+            
+            if (!confirm('Are you sure you want to cancel this ride?')) {
+                return;
+            }
+            
+            try {
+                const url = reason ? `/api/v1/schedule/${rideId}?reason=${encodeURIComponent(reason)}` : `/api/v1/schedule/${rideId}`;
+                
+                const response = await fetch(url, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Ride cancelled successfully!');
+                    loadScheduledRides();
+                } else {
+                    showError(result.error || 'Failed to cancel ride');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('An error occurred. Please try again.');
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = `
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

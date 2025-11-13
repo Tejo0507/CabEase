@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Center - CabEase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.6s ease-out',
+                        'slide-in-right': 'slideInRight 0.5s ease-out',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'bounce-gentle': 'bounceGentle 2s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places,geometry&callback=initMap" async defer></script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 6s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+        }
+        
+        @keyframes bounceGentle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .premium-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+        }
+        
+        .booking-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 24px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-active { background-color: #10b981; }
+        .status-inactive { background-color: #ef4444; }
+        .status-warning { background-color: #f59e0b; }
+        
+        #map {
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .cab-category {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .cab-category:hover {
+            transform: scale(1.05);
+            background: rgba(59, 130, 246, 0.2);
+        }
+        
+        .cab-category.selected {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgb(59, 130, 246);
+        }
+        
+        .booking-input {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .booking-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgb(59, 130, 246);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        
+        .booking-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen font-sans" th:attr="data-user-role=${user?.role}">
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-2xl font-bold">
+                        <i class="fas fa-taxi mr-2"></i>CabEase
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/home" class="text-white hover:text-gray-200 transition-colors duration-200">Home</a>
+                    <a href="/dashboard" class="text-white hover:text-gray-200 transition-colors duration-200 font-semibold">Dashboard</a>
+                    <a href="/bookings" class="text-white hover:text-gray-200 transition-colors duration-200">My Bookings</a>
+                    <a href="/contact" class="text-white hover:text-gray-200 transition-colors duration-200">Contact</a>
+                    <a href="/logout" class="text-white hover:text-gray-200 transition-colors duration-200">Logout</a>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-white hover:text-gray-200" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden glass border-t border-white/20">
+                <div class="px-4 py-2 space-y-2">
+                    <a href="/home" class="block text-white hover:text-gray-200 py-2">Home</a>
+                    <a href="/dashboard" class="block text-white hover:text-gray-200 py-2 font-semibold">Dashboard</a>
+                    <a href="/bookings" class="block text-white hover:text-gray-200 py-2">My Bookings</a>
+                    <a href="/contact" class="block text-white hover:text-gray-200 py-2">Contact</a>
+                    <a href="/logout" class="block text-white hover:text-gray-200 py-2">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Dashboard Header -->
+        <div class="text-center mb-12 animate-fade-in-up">
+            <h1 class="text-5xl md:text-6xl font-bold text-white mb-4">
+                <i class="fas fa-tachometer-alt mr-4"></i>Control Center
+            </h1>
+            <p class="text-xl text-white/80 max-w-2xl mx-auto">
+                Your premium cab booking command center. Book rides, track performance, and manage your fleet.
+            </p>
+        </div>
+
+        <!-- Real-time Status Bar -->
+        <div class="booking-card p-6 mb-8 animate-slide-in-right">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div class="space-y-2">
+                    <div class="status-indicator status-active"></div>
+                    <p class="text-white/80 text-sm">Available Cabs</p>
+                    <p class="text-2xl font-bold text-white" id="available-cabs">18</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="status-indicator status-active"></div>
+                    <p class="text-white/80 text-sm">Active Drivers</p>
+                    <p class="text-2xl font-bold text-white" id="active-drivers">24</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="status-indicator status-warning"></div>
+                    <p class="text-white/80 text-sm">Avg Wait Time</p>
+                    <p class="text-2xl font-bold text-white" id="wait-time">3 min</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="status-indicator status-active"></div>
+                    <p class="text-white/80 text-sm">Online Users</p>
+                    <p class="text-2xl font-bold text-white" id="online-users">142</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Booking Section -->
+        <div class="grid lg:grid-cols-3 gap-8 mb-12">
+            <!-- Booking Form -->
+            <div class="lg:col-span-1">
+                <div class="booking-card p-8 hover-lift">
+                    <h2 class="text-3xl font-bold text-white mb-6 text-center">
+                        <i class="fas fa-taxi mr-2"></i>Book Your Ride
+                    </h2>
+                    
+                    <!-- Cab Category Selection -->
+                    <div class="mb-6">
+                        <label class="block text-white/80 text-sm font-semibold mb-3">Select Cab Type</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="cab-category premium-card p-3 text-center rounded-lg border-2 border-transparent" onclick="selectCabType('mini')">
+                                <i class="fas fa-car text-2xl text-blue-400 mb-2"></i>
+                                <p class="text-white font-semibold">Mini</p>
+                                <p class="text-white/60 text-xs">₹12/km</p>
+                            </div>
+                            <div class="cab-category premium-card p-3 text-center rounded-lg border-2 border-transparent selected" onclick="selectCabType('sedan')">
+                                <i class="fas fa-car-side text-2xl text-blue-400 mb-2"></i>
+                                <p class="text-white font-semibold">Sedan</p>
+                                <p class="text-white/60 text-xs">₹15/km</p>
+                            </div>
+                            <div class="cab-category premium-card p-3 text-center rounded-lg border-2 border-transparent" onclick="selectCabType('auto')">
+                                <i class="fas fa-motorcycle text-2xl text-blue-400 mb-2"></i>
+                                <p class="text-white font-semibold">Auto</p>
+                                <p class="text-white/60 text-xs">₹8/km</p>
+                            </div>
+                            <div class="cab-category premium-card p-3 text-center rounded-lg border-2 border-transparent" onclick="selectCabType('bike')">
+                                <i class="fas fa-bicycle text-2xl text-blue-400 mb-2"></i>
+                                <p class="text-white font-semibold">Bike</p>
+                                <p class="text-white/60 text-xs">₹5/km</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Inputs -->
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="block text-white/80 text-sm font-semibold mb-2">
+                                <i class="fas fa-map-marker-alt text-green-400 mr-1"></i>Pickup Location
+                            </label>
+                            <input type="text" id="pickup-input" class="booking-input w-full px-4 py-3" placeholder="Enter pickup location">
+                            <input type="hidden" id="pickupLatitude" name="pickupLatitude">
+                            <input type="hidden" id="pickupLongitude" name="pickupLongitude">
+                        </div>
+                        <div>
+                            <label class="block text-white/80 text-sm font-semibold mb-2">
+                                <i class="fas fa-flag-checkered text-red-400 mr-1"></i>Drop Location  
+                            </label>
+                            <input type="text" id="drop-input" class="booking-input w-full px-4 py-3" placeholder="Enter destination">
+                            <input type="hidden" id="dropLatitude" name="dropLatitude">
+                            <input type="hidden" id="dropLongitude" name="dropLongitude">
+                        </div>
+                    </div>
+
+                    <!-- Route Info -->
+                    <div id="route-info" class="premium-card p-4 mb-6 hidden">
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div>
+                                <p class="text-white/70 text-sm">Distance</p>
+                                <p class="text-white font-bold" id="route-distance">--</p>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm">Duration</p>
+                                <p class="text-white font-bold" id="route-duration">--</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <p class="text-white/70 text-sm">Estimated Fare</p>
+                            <p class="text-3xl font-bold text-green-400">₹<span id="estimated-fare">0</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-3">
+                        <button onclick="showRoute()" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold">
+                            <i class="fas fa-route mr-2"></i>Show Route
+                        </button>
+                        <button onclick="bookNow()" id="book-btn" class="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-semibold animate-pulse-glow disabled:opacity-50" disabled>
+                            <i class="fas fa-taxi mr-2"></i>Book Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="lg:col-span-2">
+                <div class="booking-card p-6 h-96 lg:h-full">
+                    <div id="map" class="w-full h-full min-h-96"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Cards Section -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Fleet Management -->
+            <div class="premium-card p-6 hover-lift">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 mb-4">
+                        <i class="fas fa-car text-2xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Fleet Management</h3>
+                    <p class="text-white/70 mb-4">Command your premium fleet. Manage vehicles and elite drivers with precision.</p>
+                    <a href="/admin/cabs" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 font-semibold">
+                        <i class="fas fa-cog mr-2"></i>Manage Fleet
+                    </a>
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="premium-card p-6 hover-lift">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-500/20 mb-4">
+                        <i class="fas fa-chart-line text-2xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Performance Analytics</h3>
+                    <p class="text-white/70 mb-4">Monitor system performance and operational metrics in real-time.</p>
+                    <a href="#" class="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors duration-200 font-semibold">
+                        <i class="fas fa-analytics mr-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="premium-card p-6 hover-lift">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
+                        <i class="fas fa-users-cog text-2xl text-green-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">User Management</h3>
+                    <p class="text-white/70 mb-4">Oversee premium members and manage system access controls.</p>
+                    <a href="#" class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors duration-200 font-semibold">
+                        <i class="fas fa-users mr-2"></i>Manage Users
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Management Cards -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Quick Book -->
+            <div class="premium-card p-6 hover-lift">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/20 mb-4 animate-bounce-gentle">
+                        <i class="fas fa-taxi text-2xl text-yellow-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Quick Booking</h3>
+                    <p class="text-white/70 mb-4">Use the map above or book your regular rides instantly.</p>
+                    <a href="/bookings/new" class="inline-flex items-center px-6 py-3 bg-yellow-600 text-white rounded-full hover:bg-yellow-700 transition-colors duration-200 font-semibold">
+                        <i class="fas fa-plus-circle mr-2"></i>New Booking
+                    </a>
+                </div>
+            </div>
+
+            <!-- Ride History -->
+            <div class="premium-card p-6 hover-lift">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-500/20 mb-4">
+                        <i class="fas fa-history text-2xl text-indigo-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Ride History</h3>
+                    <p class="text-white/70 mb-4">Review your premium journeys and manage your bookings.</p>
+                    <a href="/bookings" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors duration-200 font-semibold">
+                        <i class="fas fa-list mr-2"></i>View Rides
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="booking-card p-8 max-w-md mx-4 text-center">
+            <div class="animate-bounce-gentle mb-4">
+                <i class="fas fa-check-circle text-6xl text-green-400"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-4">Booking Confirmed!</h2>
+            <p class="text-white/80 mb-6">Your cab is on the way 🚖</p>
+            <div class="premium-card p-4 mb-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-white/70 text-sm">Driver</p>
+                        <p class="text-white font-bold" id="driver-name">Karthik</p>
+                    </div>
+                    <div>
+                        <p class="text-white/70 text-sm">Vehicle</p>
+                        <p class="text-white font-bold" id="vehicle-info">Swift Dzire</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="text-white/70 text-sm">Number Plate</p>
+                    <p class="text-white font-bold" id="vehicle-number">TN01AB1234</p>
+                </div>
+                <div class="mt-3">
+                    <p class="text-white/70 text-sm">ETA</p>
+                    <p class="text-2xl font-bold text-green-400" id="eta">5 minutes</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <button onclick="trackRide()" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Track Ride
+                </button>
+                <button onclick="closeModal()" class="w-full px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-semibold">
+                    <i class="fas fa-times mr-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let pickupAutocomplete;
+        let dropAutocomplete;
+        let selectedCabType = 'sedan';
+        let currentRoute = null;
+
+        // Cab rates per km
+        const cabRates = {
+            mini: 12,
+            sedan: 15,
+            auto: 8,
+            bike: 5
+        };
+
+        // Initialize Google Maps (identical for both Admin and User)
+        function initMap() {
+            // Chennai coordinates - same for all users
+            const chennai = { lat: 13.0827, lng: 80.2707 };
+
+            // Map options - identical styling and behavior for all roles
+            const mapOptions = {
+                zoom: 12,
+                center: chennai,
+                restriction: {
+                    latLngBounds: {
+                        north: 13.2827,
+                        south: 12.8827,
+                        west: 80.0707,
+                        east: 80.4707
+                    },
+                    strictBounds: false
+                },
+                styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#1e293b"}]
+                    },
+                    {
+                        "featureType": "road",
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#475569"}]
+                    },
+                    {
+                        "featureType": "water",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#0f172a"}]
+                    }
+                ],
+                // Enhanced map controls - same for all users
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                },
+                zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_CENTER,
+                },
+                scaleControl: true,
+                streetViewControl: true,
+                fullscreenControl: true
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            directionsService = new google.maps.DirectionsService();
+            
+            // Enhanced directions renderer with custom markers
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: false,
+                polylineOptions: {
+                    strokeColor: '#3b82f6',
+                    strokeWeight: 6,
+                    strokeOpacity: 0.8
+                },
+                markerOptions: {
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                        scale: 8
+                    }
+                }
+            });
+            directionsRenderer.setMap(map);
+
+            // Initialize autocomplete - same for all roles
+            initAutocomplete();
+            
+            // Initialize role-specific map data after map is loaded
+            initMapDataByRole();
+        }
+
+        // Initialize map data based on user role (same map, different data)
+        function initMapDataByRole() {
+            const userRole = getUserRole();
+            
+            if (userRole === 'ROLE_ADMIN') {
+                // Admin sees additional fleet markers (future implementation)
+                initAdminMapData();
+            } else {
+                // User sees available cabs nearby (future implementation)  
+                initUserMapData();
+            }
+        }
+
+        function initAdminMapData() {
+            // Future: Add fleet vehicle markers
+            // Add driver location markers
+            // Add real-time tracking overlays
+            console.log('Admin map data: Fleet and driver locations would be loaded here');
+        }
+
+        function initUserMapData() {
+            // Future: Add nearby available cab markers
+            // Add user's saved locations
+            console.log('User map data: Available cabs and saved locations would be loaded here');
+        }
+
+        function initAutocomplete() {
+            const chennai = new google.maps.LatLngBounds(
+                new google.maps.LatLng(12.8827, 80.0707),
+                new google.maps.LatLng(13.2827, 80.4707)
+            );
+
+            // Enhanced autocomplete options - identical for all users
+            const autocompleteOptions = {
+                bounds: chennai,
+                strictBounds: true,
+                types: ['establishment', 'geocode'],
+                componentRestrictions: { country: 'IN' },
+                fields: ['place_id', 'geometry', 'name', 'formatted_address']
+            };
+
+            pickupAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('pickup-input'),
+                autocompleteOptions
+            );
+
+            dropAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('drop-input'), 
+                autocompleteOptions
+            );
+
+            // Enhanced place change listeners
+            pickupAutocomplete.addListener('place_changed', function() {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    document.getElementById('pickupLatitude').value = lat;
+                    document.getElementById('pickupLongitude').value = lng;
+                    console.log('Pickup coordinates stored:', lat, lng);
+                }
+            });
+
+            dropAutocomplete.addListener('place_changed', function() {
+                const place = dropAutocomplete.getPlace();
+                if (place.geometry) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    document.getElementById('dropLatitude').value = lat;
+                    document.getElementById('dropLongitude').value = lng;
+                    console.log('Drop coordinates stored:', lat, lng);
+                }
+            });
+        }
+
+        function selectCabType(type) {
+            selectedCabType = type;
+            
+            // Update UI
+            document.querySelectorAll('.cab-category').forEach(cat => {
+                cat.classList.remove('selected');
+            });
+            event.target.closest('.cab-category').classList.add('selected');
+            
+            // Recalculate fare if route exists
+            if (currentRoute) {
+                calculateFare(currentRoute.distance);
+            }
+        }
+
+        function showRoute() {
+            const pickup = document.getElementById('pickup-input').value;
+            const drop = document.getElementById('drop-input').value;
+
+            if (!pickup || !drop) {
+                alert('Please enter both pickup and drop locations');
+                return;
+            }
+
+            // Enhanced route request with multiple options
+            const request = {
+                origin: pickup,
+                destination: drop,
+                travelMode: google.maps.TravelMode.DRIVING,
+                avoidHighways: false,
+                avoidTolls: false,
+                provideRouteAlternatives: true,
+                unitSystem: google.maps.UnitSystem.METRIC
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    // Clear any existing routes
+                    directionsRenderer.setDirections(result);
+                    
+                    const route = result.routes[0].legs[0];
+                    currentRoute = {
+                        distance: route.distance.value / 1000, // Convert to km
+                        duration: route.duration.text,
+                        durationValue: route.duration.value, // Duration in seconds
+                        distanceText: route.distance.text,
+                        startAddress: route.start_address,
+                        endAddress: route.end_address
+                    };
+
+                    // Update UI with enhanced information
+                    document.getElementById('route-distance').textContent = route.distance.text;
+                    document.getElementById('route-duration').textContent = route.duration.text;
+                    document.getElementById('route-info').classList.remove('hidden');
+                    document.getElementById('book-btn').disabled = false;
+                    
+                    // Enhanced fare calculation
+                    calculateFareWithDetails(currentRoute.distance);
+                    
+                    // Role-specific route enhancements
+                    enhanceRouteByRole(result);
+                    
+                } else {
+                    let errorMessage = 'Could not calculate route. ';
+                    switch(status) {
+                        case 'ZERO_RESULTS':
+                            errorMessage += 'No route found between the locations.';
+                            break;
+                        case 'OVER_QUERY_LIMIT':
+                            errorMessage += 'Query limit exceeded. Please try again later.';
+                            break;
+                        case 'REQUEST_DENIED':
+                            errorMessage += 'Request denied. Please check your connection.';
+                            break;
+                        default:
+                            errorMessage += 'Please check your locations and try again.';
+                    }
+                    alert(errorMessage);
+                }
+            });
+        }
+
+        function enhanceRouteByRole(result) {
+            // Same route enhancement for all users - no role-based differences
+            console.log('Route enhancement: Traffic data and analytics available');
+            if (result.routes.length > 1) {
+                console.log(`${result.routes.length} alternate routes available`);
+            }
+        }
+
+        function calculateFare(distanceKm) {
+            const rate = cabRates[selectedCabType];
+            const fare = Math.round(distanceKm * rate);
+            document.getElementById('estimated-fare').textContent = fare;
+        }
+
+        function calculateFareWithDetails(distanceKm) {
+            const rate = cabRates[selectedCabType];
+            const baseFare = 50; // Base fare for all rides
+            const distanceFare = Math.round(distanceKm * rate);
+            const totalFare = baseFare + distanceFare;
+            
+            // Apply time-based surge pricing (same for all users)
+            const surgeMultiplier = getSurgeMultiplier();
+            const finalFare = Math.round(totalFare * surgeMultiplier);
+            
+            document.getElementById('estimated-fare').textContent = finalFare;
+            
+            // Role-specific fare display enhancements
+            enhanceFareDisplayByRole(baseFare, distanceFare, surgeMultiplier, finalFare);
+        }
+
+        function getSurgeMultiplier() {
+            const hour = new Date().getHours();
+            // Peak hours: 8-10 AM and 6-8 PM
+            if ((hour >= 8 && hour <= 10) || (hour >= 18 && hour <= 20)) {
+                return 1.5; // 1.5x surge during peak hours
+            }
+            return 1.0; // Normal pricing
+        }
+
+        function enhanceFareDisplayByRole(baseFare, distanceFare, surgeMultiplier, finalFare) {
+            // Same detailed fare breakdown for all users
+            console.log('Fare breakdown:', {
+                baseFare,
+                distanceFare, 
+                surgeMultiplier,
+                finalFare,
+                cabType: selectedCabType
+            });
+            
+            if (surgeMultiplier > 1.0) {
+                console.log(`Peak hour pricing: ${surgeMultiplier}x surge applied`);
+            }
+        }
+
+        function bookNow() {
+            // Validate coordinates
+            const pickupLat = document.getElementById('pickupLatitude').value;
+            const pickupLng = document.getElementById('pickupLongitude').value;
+            const dropLat = document.getElementById('dropLatitude').value;
+            const dropLng = document.getElementById('dropLongitude').value;
+            
+            if (!pickupLat || !pickupLng || !dropLat || !dropLng) {
+                alert('Please select valid pickup and drop locations from the suggestions');
+                return;
+            }
+            
+            // Prepare booking data
+            const bookingData = {
+                pickupLocation: document.getElementById('pickup-input').value,
+                dropLocation: document.getElementById('drop-input').value,
+                pickupLatitude: parseFloat(pickupLat),
+                pickupLongitude: parseFloat(pickupLng),
+                dropLatitude: parseFloat(dropLat),
+                dropLongitude: parseFloat(dropLng),
+                cabType: selectedCabType,
+                fare: parseFloat(document.getElementById('estimated-fare').textContent)
+            };
+            
+            console.log('Creating booking with data:', bookingData);
+            
+            // Send to backend
+            fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bookingData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Booking failed: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(booking => {
+                console.log('Booking created successfully:', booking);
+                
+                // Show success modal
+                document.getElementById('success-modal').classList.remove('hidden');
+                
+                // Simulate driver assignment for display
+                const driverAssignment = simulateDriverAssignment();
+                document.getElementById('driver-name').textContent = driverAssignment.driver;
+                document.getElementById('vehicle-info').textContent = driverAssignment.vehicle;
+                document.getElementById('vehicle-number').textContent = driverAssignment.number;
+                document.getElementById('eta').textContent = `${driverAssignment.eta} minutes`;
+                
+                // Store booking ID for tracking
+                window.currentBookingId = booking.id;
+            })
+            .catch(error => {
+                console.error('Booking error:', error);
+                alert('Failed to create booking: ' + error.message);
+            });
+        }
+
+        function prepareBookingData() {
+            return {
+                pickup: document.getElementById('pickup-input').value,
+                drop: document.getElementById('drop-input').value,
+                cabType: selectedCabType,
+                route: currentRoute,
+                fare: document.getElementById('estimated-fare').textContent,
+                timestamp: new Date().toISOString(),
+                surgeMultiplier: getSurgeMultiplier()
+            };
+        }
+
+        function simulateDriverAssignment() {
+            const drivers = ['Karthik', 'Rajesh', 'Suresh', 'Mohan', 'Prakash'];
+            const vehicles = ['Swift Dzire', 'Honda City', 'Hyundai Verna', 'Toyota Etios', 'Maruti Baleno'];
+            const numbers = ['TN01AB1234', 'TN09CD5678', 'TN07EF9012', 'TN02GH3456', 'TN05IJ7890'];
+            const ratings = [4.8, 4.9, 4.7, 4.6, 4.8];
+            
+            const randomIndex = Math.floor(Math.random() * drivers.length);
+            
+            return {
+                driver: drivers[randomIndex],
+                vehicle: vehicles[randomIndex],
+                number: numbers[randomIndex],
+                rating: ratings[randomIndex],
+                eta: Math.floor(Math.random() * 6) + 3,
+                phone: '+91 9876543210'
+            };
+        }
+
+        function handleBookingByRole(bookingData, driverAssignment) {
+            // Same booking handling for all users
+            console.log('Booking created:', {
+                ...bookingData,
+                driverAssignment,
+                features: {
+                    canTrackRide: true,
+                    canContactDriver: true,
+                    canRateRide: true,
+                    canReassignDriver: true,
+                    canModifyRoute: true,
+                    canApplyDiscounts: true
+                }
+            });
+        }
+
+        function trackRide() {
+            if (window.currentBookingId) {
+                window.location.href = '/bookings/' + window.currentBookingId + '/tracking';
+            } else {
+                alert('Booking ID not found. Please go to My Bookings page.');
+                window.location.href = '/bookings';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            
+            // Reset form
+            document.getElementById('pickup-input').value = '';
+            document.getElementById('drop-input').value = '';
+            document.getElementById('route-info').classList.add('hidden');
+            document.getElementById('book-btn').disabled = true;
+            directionsRenderer.setDirections({routes: []});
+            currentRoute = null;
+        }
+
+        // Update real-time stats
+        function updateStats() {
+            const cabs = document.getElementById('available-cabs');
+            const drivers = document.getElementById('active-drivers');
+            const waitTime = document.getElementById('wait-time');
+            const onlineUsers = document.getElementById('online-users');
+            
+            // Simulate real-time updates
+            setInterval(() => {
+                cabs.textContent = Math.floor(Math.random() * 6) + 15;
+                drivers.textContent = Math.floor(Math.random() * 5) + 22;
+                waitTime.textContent = Math.floor(Math.random() * 3) + 2 + ' min';
+                onlineUsers.textContent = Math.floor(Math.random() * 20) + 135;
+            }, 5000);
+        }
+
+        // Initialize stats updates
+        updateStats();
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        // Enhanced role-based functionality
+        function getUserRole() {
+            return document.body.getAttribute('data-user-role') || 'ROLE_USER';
+        }
+
+        // Universal map features (identical for both Admin and User)
+        function initUniversalMapFeatures() {
+            // Both Admin and User get the same map functionality
+            console.log('Universal map features initialized for all users');
+            
+            // Same map styling
+            // Same route calculation  
+            // Same fare estimation
+            // Same booking process
+            // Same UI interactions
+        }
+
+        // Role-specific data access (different data, same functionality)
+        function initRoleSpecificDataAccess() {
+            const userRole = getUserRole();
+            
+            if (userRole === 'ROLE_ADMIN') {
+                // Admin data access: all bookings, fleet management, analytics
+                console.log('Admin data access enabled - can view all rides and fleet data');
+                
+                // Enable admin-specific data features
+                enableAdminDataFeatures();
+            } else {
+                // User data access: personal bookings only
+                console.log('User data access enabled - personal bookings only');
+                
+                // Enable user-specific data features  
+                enableUserDataFeatures();
+            }
+        }
+
+        function enableAdminDataFeatures() {
+            // Admin can see:
+            // - All active rides on map
+            // - Fleet vehicle locations
+            // - Driver statuses
+            // - System analytics
+            
+            // Future implementation: Load and display fleet data on map
+            console.log('Admin can access all rides and fleet data');
+        }
+
+        function enableUserDataFeatures() {
+            // User can see:
+            // - Their own active bookings
+            // - Personal ride history
+            // - Available cabs for booking
+            
+            // Future implementation: Load user's personal data only
+            console.log('User can access personal bookings only');
+        }
+
+        // Enhanced booking function with role-specific data handling
+        function bookNowEnhanced() {
+            const userRole = getUserRole();
+            
+            // Same booking process for both roles
+            bookNow();
+            
+            // Different data storage/access based on role
+            if (userRole === 'ROLE_ADMIN') {
+                // Admin booking: can book for any user, track in admin panel
+                console.log('Admin booking: Enhanced tracking and management');
+            } else {
+                // User booking: personal booking only
+                console.log('User booking: Personal ride booking');
+            }
+        }
+
+        // Enhanced fare calculation (identical for both roles)
+        function calculateFareEnhanced(distanceKm) {
+            // Same calculation logic for everyone
+            calculateFare(distanceKm);
+            
+            const userRole = getUserRole();
+            
+            // Same fare display, but different backend tracking
+            if (userRole === 'ROLE_ADMIN') {
+                // Admin: can see fare breakdowns, apply discounts, etc.
+                console.log('Admin fare calculation: Full breakdown available');
+            } else {
+                // User: standard fare calculation
+                console.log('User fare calculation: Standard pricing');
+            }
+        }
+
+        // Enhanced route display (identical visual, different data access)
+        function showRouteEnhanced() {
+            // Same route visualization for everyone
+            showRoute();
+            
+            const userRole = getUserRole();
+            
+            if (userRole === 'ROLE_ADMIN') {
+                // Admin: can see traffic data, alternate routes, driver locations
+                console.log('Admin route: Enhanced traffic and fleet data');
+            } else {
+                // User: standard route display
+                console.log('User route: Standard route visualization');
+            }
+        }
+
+        // Initialize all features
+        function initializeAllFeatures() {
+            initUniversalMapFeatures();
+            initRoleSpecificDataAccess();
+        }
+
+        // Initialize features after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAllFeatures();
+        });
+    </script>
+</body>
+</html>

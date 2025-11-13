@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fare Calculator - CabEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CabEase Luxury Theme - Matching Booking Dashboard */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-dark: #1a1a2e;
+            --secondary-dark: #16213e;
+            --accent-dark: #0f3460;
+            --gold-accent: #fbbf24;
+            --teal-accent: #14b8a6;
+            --orange-accent: #ff6b35;
+            --success-green: #22c55e;
+            --error-red: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 50%, var(--accent-dark) 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* Header Navigation */
+        .luxury-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--gold-accent);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-nav-icons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .feature-icon-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            min-width: 75px;
+        }
+
+        .feature-icon-link:hover {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: var(--gold-accent);
+            color: white;
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        .feature-icon-link.active {
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            border-color: var(--gold-accent);
+            color: var(--primary-dark);
+        }
+
+        .feature-icon-link i {
+            font-size: 1.35rem;
+            transition: all 0.4s;
+        }
+
+        .feature-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Location Input Section */
+        .location-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--gold-accent);
+        }
+
+        .location-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .location-input-group label {
+            display: block;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.5rem;
+        }
+
+        .location-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--glass-border);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .location-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .location-input:focus {
+            outline: none;
+            border-color: var(--gold-accent);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .input-icon input {
+            padding-left: 3rem;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+        }
+
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .distance-info {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .distance-info.show {
+            display: block;
+        }
+
+        .distance-info p {
+            margin: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .distance-info strong {
+            color: var(--gold-accent);
+        }
+
+        /* Map Section */
+        .map-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .map-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+
+        /* Fare Estimates Grid */
+        .fare-estimates {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .estimates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .vehicle-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .vehicle-card:hover {
+            border-color: var(--gold-accent);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.05);
+        }
+
+        .vehicle-card.recommended {
+            border-color: var(--success-green);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .vehicle-icon {
+            font-size: 2.5rem;
+        }
+
+        .recommended-badge {
+            background: var(--success-green);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .vehicle-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .vehicle-description {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .vehicle-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .info-item i {
+            color: var(--gold-accent);
+        }
+
+        .fare-breakdown {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1rem;
+        }
+
+        .fare-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .fare-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold-accent);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--glass-border);
+        }
+
+        .surge-indicator {
+            background: linear-gradient(135deg, var(--orange-accent), #d97706);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .estimates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="luxury-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <i class="fas fa-taxi logo-icon"></i>
+                <span class="logo-text">CabEase</span>
+            </div>
+            
+            <nav class="feature-nav-icons">
+                <a href="/booking-dashboard" class="feature-icon-link" title="Book Ride">
+                    <i class="fas fa-car"></i>
+                    <span class="feature-label">Book</span>
+                </a>
+                <a href="/fare-calculator" class="feature-icon-link active" title="Fare Calculator">
+                    <i class="fas fa-calculator"></i>
+                    <span class="feature-label">Fare</span>
+                </a>
+                <a href="/schedule-ride" class="feature-icon-link" title="Schedule Ride">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span class="feature-label">Schedule</span>
+                </a>
+                <a href="/analytics-dashboard" class="feature-icon-link" title="Analytics">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="feature-label">Analytics</span>
+                </a>
+                <a href="/wallet" class="feature-icon-link" title="Wallet">
+                    <i class="fas fa-wallet"></i>
+                    <span class="feature-label">Wallet</span>
+                </a>
+                <a href="/payment-methods" class="feature-icon-link" title="Payment">
+                    <i class="fas fa-credit-card"></i>
+                    <span class="feature-label">Payment</span>
+                </a>
+                <a href="/profile" class="feature-icon-link" title="Profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="feature-label">Profile</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Location Input Section -->
+            <div class="location-section">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Journey Details
+                </h2>
+
+                <div class="location-input-group">
+                    <label for="pickupLocation">
+                        <i class="fas fa-circle" style="color: var(--success-green);"></i>
+                        Pickup Location
+                    </label>
+                    <div class="input-icon">
+                        <i class="fas fa-circle" style="color: var(--success-green);"></i>
+                        <input type="text" id="pickupLocation" class="location-input" placeholder="Enter pickup location">
+                    </div>
+                </div>
+
+                <div class="location-input-group">
+                    <label for="dropLocation">
+                        <i class="fas fa-map-marker-alt" style="color: var(--error-red);"></i>
+                        Drop Location
+                    </label>
+                    <div class="input-icon">
+                        <i class="fas fa-map-marker-alt" style="color: var(--error-red);"></i>
+                        <input type="text" id="dropLocation" class="location-input" placeholder="Enter drop location">
+                    </div>
+                </div>
+
+                <button id="calculateBtn" class="calculate-btn">
+                    <i class="fas fa-calculator"></i> Calculate Fare
+                </button>
+
+                <div id="distanceInfo" class="distance-info">
+                    <p><strong>Distance:</strong> <span id="distanceText">-</span></p>
+                    <p><strong>Duration:</strong> <span id="durationText">-</span></p>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section">
+                <div class="map-header">
+                    <h2 class="section-title" style="margin: 0;">
+                        <i class="fas fa-route"></i>
+                        Route Preview
+                    </h2>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Fare Estimates Section -->
+        <div class="fare-estimates">
+            <h2 class="section-title">
+                <i class="fas fa-rupee-sign"></i>
+                Fare Estimates
+            </h2>
+            <div id="estimatesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-calculator"></i>
+                    <p>Enter pickup and drop locations to see fare estimates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places,geometry"></script>
+    <script>
+        let map, pickupMarker, dropMarker, directionsService, directionsRenderer;
+        let pickupAutocomplete, dropAutocomplete;
+        let pickupLocation = null, dropLocation = null;
+
+        // Initialize Google Maps with Chennai as default
+        function initMap() {
+            console.log('Initializing Google Maps...');
+
+            // Chennai coordinates - DEFAULT LOCATION
+            const chennai = { lat: 13.0827, lng: 80.2707 };
+
+            // Map options with luxury dark styling
+            const mapOptions = {
+                zoom: 12,
+                center: chennai,
+                restriction: {
+                    latLngBounds: {
+                        north: 13.2827,
+                        south: 12.8827,
+                        west: 80.0707,
+                        east: 80.4707
+                    },
+                    strictBounds: false
+                },
+                styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#1a1a2e"}]
+                    },
+                    {
+                        "featureType": "all",
+                        "elementType": "labels.text.fill",
+                        "stylers": [{"color": "#ffffff"}]
+                    },
+                    {
+                        "featureType": "road",
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#16213e"}]
+                    },
+                    {
+                        "featureType": "road.highway",
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#0f3460"}]
+                    },
+                    {
+                        "featureType": "water",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#0f172a"}]
+                    },
+                    {
+                        "featureType": "poi",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#16213e"}]
+                    },
+                    {
+                        "featureType": "administrative",
+                        "elementType": "geometry.stroke",
+                        "stylers": [{"color": "#fbbf24"}]
+                    }
+                ],
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
+                }
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            directionsService = new google.maps.DirectionsService();
+            
+            // Enhanced directions renderer
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#fbbf24',
+                    strokeWeight: 5,
+                    strokeOpacity: 0.8
+                }
+            });
+
+            // Initialize autocomplete with Indian locations
+            const pickupInput = document.getElementById('pickupLocation');
+            const dropInput = document.getElementById('dropLocation');
+
+            const autocompleteOptions = {
+                types: ['establishment', 'geocode'],
+                componentRestrictions: { country: 'IN' },
+                fields: ['place_id', 'geometry', 'name', 'formatted_address']
+            };
+
+            pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, autocompleteOptions);
+            dropAutocomplete = new google.maps.places.Autocomplete(dropInput, autocompleteOptions);
+
+            pickupAutocomplete.addListener('place_changed', () => {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    pickupLocation = {
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng(),
+                        address: place.formatted_address
+                    };
+                    console.log('Pickup location selected:', pickupLocation);
+                    updateRoute();
+                }
+            });
+
+            dropAutocomplete.addListener('place_changed', () => {
+                const place = dropAutocomplete.getPlace();
+                if (place.geometry) {
+                    dropLocation = {
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng(),
+                        address: place.formatted_address
+                    };
+                    console.log('Drop location selected:', dropLocation);
+                    updateRoute();
+                }
+            });
+
+            console.log('Google Maps initialized successfully with Chennai as default');
+        }
+
+        // Update route on map
+        function updateRoute() {
+            if (!pickupLocation || !dropLocation) {
+                console.log('Both locations not selected yet');
+                return;
+            }
+
+            console.log('Updating route...');
+
+            const request = {
+                origin: new google.maps.LatLng(pickupLocation.lat, pickupLocation.lng),
+                destination: new google.maps.LatLng(dropLocation.lat, dropLocation.lng),
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // Display distance and duration
+                    const route = result.routes[0].legs[0];
+                    document.getElementById('distanceText').textContent = route.distance.text;
+                    document.getElementById('durationText').textContent = route.duration.text;
+                    document.getElementById('distanceInfo').classList.add('show');
+
+                    // Add custom markers
+                    if (pickupMarker) pickupMarker.setMap(null);
+                    if (dropMarker) dropMarker.setMap(null);
+
+                    pickupMarker = new google.maps.Marker({
+                        position: request.origin,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#22c55e',
+                            fillOpacity: 1,
+                            strokeColor: 'white',
+                            strokeWeight: 3,
+                            scale: 12
+                        },
+                        zIndex: 1000
+                    });
+
+                    dropMarker = new google.maps.Marker({
+                        position: request.destination,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#ef4444',
+                            fillOpacity: 1,
+                            strokeColor: 'white',
+                            strokeWeight: 3,
+                            scale: 12
+                        },
+                        zIndex: 1000
+                    });
+
+                    console.log('Route updated successfully');
+                } else {
+                    console.error('Directions request failed:', status);
+                }
+            });
+        }
+
+        // Calculate fare
+        document.getElementById('calculateBtn').addEventListener('click', async () => {
+            if (!pickupLocation || !dropLocation) {
+                alert('Please select both pickup and drop locations');
+                return;
+            }
+
+            const btn = document.getElementById('calculateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+
+            document.getElementById('estimatesContainer').innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Calculating fares for all vehicle types...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/api/v1/fare/estimate?pickupLat=${pickupLocation.lat}&pickupLng=${pickupLocation.lng}&dropLat=${dropLocation.lat}&dropLng=${dropLocation.lng}`);
+                
+                if (response.ok) {
+                    const estimates = await response.json();
+                    console.log('Fare estimates received:', estimates);
+                    displayFareEstimates(estimates);
+                } else {
+                    throw new Error('Failed to calculate fares');
+                }
+            } catch (error) {
+                console.error('Error calculating fares:', error);
+                document.getElementById('estimatesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: var(--error-red);"></i>
+                        <p>Error calculating fares. Please try again.</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-calculator"></i> Calculate Fare';
+            }
+        });
+
+        // Display fare estimates
+        function displayFareEstimates(estimates) {
+            if (!estimates || estimates.length === 0) {
+                document.getElementById('estimatesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-car"></i>
+                        <p>No vehicles available for this route</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="estimates-grid">
+                    ${estimates.map(estimate => createVehicleCard(estimate)).join('')}
+                </div>
+            `;
+
+            document.getElementById('estimatesContainer').innerHTML = html;
+        }
+
+        // Create vehicle card HTML
+        function createVehicleCard(estimate) {
+            const hasSurge = estimate.surgeMultiplier > 1.0;
+            const surgeHtml = hasSurge ? `
+                <div class="surge-indicator">
+                    <i class="fas fa-bolt"></i>
+                    ${estimate.surgeMultiplier}x Surge Pricing
+                </div>
+            ` : '';
+
+            const recommendedHtml = estimate.isRecommended ? `
+                <span class="recommended-badge">Recommended</span>
+            ` : '';
+
+            return `
+                <div class="vehicle-card ${estimate.isRecommended ? 'recommended' : ''}">
+                    <div class="vehicle-header">
+                        <div class="vehicle-icon">${estimate.icon}</div>
+                        ${recommendedHtml}
+                    </div>
+                    
+                    ${surgeHtml}
+                    
+                    <div class="vehicle-name">${estimate.displayName}</div>
+                    <div class="vehicle-description">${estimate.description}</div>
+                    
+                    <div class="vehicle-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            ${estimate.capacity} Seats
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            ${estimate.estimatedArrivalTime} mins
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-car"></i>
+                            ${estimate.availableCount || 0} Available
+                        </div>
+                    </div>
+                    
+                    <div class="fare-breakdown">
+                        <div class="fare-row">
+                            <span>Base Fare:</span>
+                            <span>₹${estimate.baseFare.toFixed(2)}</span>
+                        </div>
+                        ${hasSurge ? `
+                            <div class="fare-row">
+                                <span>Surge Charge:</span>
+                                <span>₹${estimate.surgeAmount.toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                        <div class="fare-row">
+                            <span>Tax (5%):</span>
+                            <span>₹${estimate.taxAmount.toFixed(2)}</span>
+                        </div>
+                        
+                        <div class="fare-total">
+                            <span>Total Fare:</span>
+                            <span>₹${estimate.totalFare.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize map on page load - ensure proper loading
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMap);
+        } else {
+            initMap();
+        }
+
+        // Fallback initialization after window load
+        window.addEventListener('load', () => {
+            if (!map) {
+                console.log('Initializing map as fallback...');
+                initMap();
+            }
+        });
+    </script>
+</body>
+</html>

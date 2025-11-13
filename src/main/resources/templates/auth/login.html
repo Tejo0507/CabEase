@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to CabEase - Premium Cab Booking Service</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'Poppins', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'gradient-x': 'gradient-x 15s ease infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'slide-up': 'slide-up 0.8s ease-out',
+                        'fade-in': 'fade-in 1s ease-out',
+                        'shake': 'shake 0.5s ease-in-out',
+                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+                        'tilt': 'tilt 0.3s ease-in-out',
+                        'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        'gradient-x': {
+                            '0%, 100%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'left center'
+                            },
+                            '50%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'right center'
+                            },
+                        },
+                        'float': {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        'glow': {
+                            'from': { 'box-shadow': '0 0 20px rgba(245, 158, 11, 0.5)' },
+                            'to': { 'box-shadow': '0 0 30px rgba(245, 158, 11, 0.8)' },
+                        },
+                        'slide-up': {
+                            'from': { transform: 'translateY(100px)', opacity: '0' },
+                            'to': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        'fade-in': {
+                            'from': { opacity: '0' },
+                            'to': { opacity: '1' },
+                        },
+                        'shake': {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-5px)' },
+                            '75%': { transform: 'translateX(5px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { 
+                                'box-shadow': '0 0 20px rgba(245, 158, 11, 0.3)',
+                                'border-color': 'rgba(245, 158, 11, 0.5)'
+                            },
+                            '50%': { 
+                                'box-shadow': '0 0 40px rgba(245, 158, 11, 0.6)',
+                                'border-color': 'rgba(245, 158, 11, 0.8)'
+                            },
+                        },
+                        'tilt': {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(1deg)' },
+                        },
+                        'bounce-subtle': {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Heroicons -->
+    <script src="https://unpkg.com/@heroicons/react@2.0.18/24/outline/index.js" type="module"></script>
+
+    <style>
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .glass-morphism {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #f59e0b, #eab308, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #111827, #000000, #374151);
+        }
+
+        .dark .hero-bg {
+            background: linear-gradient(135deg, #111827, #312e81, #7c3aed);
+        }
+
+        .moving-grid {
+            background-image: 
+                linear-gradient(90deg, transparent 49%, rgba(245, 158, 11, 0.1) 50%, transparent 51%),
+                linear-gradient(0deg, transparent 49%, rgba(245, 158, 11, 0.1) 50%, transparent 51%);
+            background-size: 50px 50px;
+            animation: gradient-x 20s ease infinite;
+        }
+
+        .input-glow:focus {
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+            border-color: #f59e0b;
+        }
+
+        .loading-spinner {
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #f59e0b, #eab308);
+            border-radius: 10px;
+        }
+
+        .car-animation {
+            position: absolute;
+            top: 20%;
+            left: 5%;
+            opacity: 0.2;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .security-indicator {
+            background: linear-gradient(45deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased dark transition-colors duration-500">
+    
+    <!-- Animated Background -->
+    <div class="fixed inset-0">
+        <div class="absolute inset-0 hero-bg"></div>
+        
+        <!-- Moving Grid Animation -->
+        <div class="absolute inset-0 opacity-20">
+            <div class="w-full h-full moving-grid"></div>
+        </div>
+
+        <!-- Animated Car -->
+        <div class="car-animation hidden md:block">
+            <svg class="w-16 h-16 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+            
+            <!-- Header Section -->
+            <div class="text-center mb-8 animate-fade-in">
+                <!-- Logo -->
+                <a href="/" class="inline-block mb-4 group">
+                    <div class="flex items-center justify-center space-x-2 group-hover:scale-105 transition-transform duration-300 animate-bounce-subtle">
+                        <svg class="w-10 h-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span class="text-3xl font-bold gradient-text">CabEase</span>
+                    </div>
+                </a>
+                
+                <!-- Welcome Back Message -->
+                <p class="text-gray-300 text-lg font-medium">
+                    Welcome back! Continue your premium ride with ease
+                </p>
+            </div>
+
+            <!-- Login Form Card -->
+            <div class="glass-morphism rounded-3xl p-8 shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 hover:scale-[1.02] animate-slide-up"
+                 style="animation-delay: 0.3s;">
+                
+                <!-- Form Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">
+                        Sign In
+                    </h1>
+                    <p class="text-gray-400">
+                        Access your premium account
+                    </p>
+                </div>
+
+                <!-- Error Messages -->
+                <div th:if="${param.error}" class="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-300 text-sm animate-shake">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Invalid email or password. Please try again.</span>
+                    </div>
+                </div>
+
+                <!-- Success Messages -->
+                <div th:if="${param.logout}" class="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl text-green-300 text-sm animate-fade-in">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>You have been logged out successfully.</span>
+                    </div>
+                </div>
+
+                <div th:if="${success}" class="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl text-green-300 text-sm animate-fade-in">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span th:text="${success}"></span>
+                    </div>
+                </div>
+
+                <!-- Login Form -->
+                <form th:action="@{/login}" method="post" id="loginForm" class="space-y-6">
+                    
+                    <!-- Email Field -->
+                    <div class="space-y-2">
+                        <label for="username" class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                            <span>Email Address</span>
+                        </label>
+                        <input type="email" 
+                               id="username" 
+                               name="username" 
+                               required
+                               class="w-full px-4 py-3 bg-white/10 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none input-glow transition-all duration-300 hover:bg-white/15"
+                               placeholder="Enter your email address">
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="space-y-2">
+                        <label for="password" class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            <span>Password</span>
+                        </label>
+                        <div class="relative">
+                            <input type="password" 
+                                   id="password" 
+                                   name="password" 
+                                   required
+                                   class="w-full px-4 py-3 pr-12 bg-white/10 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none input-glow transition-all duration-300 hover:bg-white/15"
+                                   placeholder="Enter your password">
+                            <button type="button" 
+                                    id="togglePassword"
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-amber-400 transition-colors duration-300">
+                                <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <svg id="eyeClosed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Forgot Password Link -->
+                    <div class="text-right">
+                        <a href="#" class="text-amber-400 hover:text-amber-300 text-sm font-medium transition-colors duration-300 hover:underline">
+                            Forgot your password?
+                        </a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            id="submitBtn"
+                            class="w-full px-6 py-4 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-black font-bold rounded-xl text-lg shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105 animate-glow flex items-center justify-center space-x-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="submitText">Sign In</span>
+                        <div id="loadingSpinner" class="loading-spinner hidden"></div>
+                        <svg id="submitIcon" class="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- Sign Up Link -->
+                <div class="text-center mt-6 pt-6 border-t border-gray-600">
+                    <p class="text-gray-400">
+                        Don't have an account? 
+                        <a th:href="@{/register}" 
+                           class="text-amber-400 hover:text-amber-300 font-semibold transition-colors duration-300 hover:underline ml-1">
+                            Sign up now
+                        </a>
+                    </p>
+                </div>
+
+                <!-- Security Indicator -->
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <div class="security-indicator rounded-lg p-3">
+                        <div class="flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.414-4.414a2 2 0 00-2.828 0L12 9.172 9.414 6.586a2 2 0 00-2.828 0l-1.172 1.172a2 2 0 000 2.828L7.828 12l-2.414 2.414a2 2 0 000 2.828l1.172 1.172a2 2 0 002.828 0L12 14.828l2.586 2.586a2 2 0 002.828 0l1.172-1.172a2 2 0 000-2.828L16.172 12l2.414-2.414a2 2 0 000-2.828l-1.172-1.172z"></path>
+                            </svg>
+                            <span class="text-green-300 text-sm font-medium">Secure Login Protected</span>
+                        </div>
+                        <div class="flex items-center justify-center mt-2 space-x-4">
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-gray-400">SSL Encrypted</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-gray-400">Data Protected</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-gray-400">Privacy First</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future OAuth Options (Placeholder) -->
+                <!-- 
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <p class="text-center text-gray-400 text-sm mb-4">Or continue with</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="flex items-center justify-center px-4 py-3 bg-white/5 border border-gray-600 rounded-xl hover:bg-white/10 transition-all duration-300">
+                            <svg class="w-5 h-5 text-white mr-2" viewBox="0 0 24 24">
+                                <!-- Google Icon -->
+                            </svg>
+                            <span class="text-white text-sm font-medium">Google</span>
+                        </button>
+                        <button class="flex items-center justify-center px-4 py-3 bg-white/5 border border-gray-600 rounded-xl hover:bg-white/10 transition-all duration-300">
+                            <svg class="w-5 h-5 text-white mr-2" viewBox="0 0 24 24">
+                                <!-- Apple Icon -->
+                            </svg>
+                            <span class="text-white text-sm font-medium">Apple</span>
+                        </button>
+                    </div>
+                </div>
+                -->
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-8 animate-fade-in" style="animation-delay: 0.8s;">
+                <p class="text-gray-500 text-sm">
+                    © 2025 CabEase. All Rights Reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Password visibility toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('password');
+        const eyeOpen = document.getElementById('eyeOpen');
+        const eyeClosed = document.getElementById('eyeClosed');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', () => {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                eyeOpen.classList.toggle('hidden');
+                eyeClosed.classList.toggle('hidden');
+            });
+        }
+
+        // Form submission with loading state
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const submitIcon = document.getElementById('submitIcon');
+
+        loginForm.addEventListener('submit', (e) => {
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Signing In...';
+            loadingSpinner.classList.remove('hidden');
+            submitIcon.classList.add('hidden');
+        });
+
+        // Input focus animations
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('animate-pulse-glow');
+            });
+            
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('animate-pulse-glow');
+            });
+        });
+
+        // Form validation animations
+        const form = document.getElementById('loginForm');
+        form.addEventListener('invalid', (e) => {
+            e.target.classList.add('animate-shake');
+            setTimeout(() => {
+                e.target.classList.remove('animate-shake');
+            }, 500);
+        });
+
+        // Hover tilt effect on form card
+        const formCard = document.querySelector('.glass-morphism');
+        formCard.addEventListener('mouseenter', () => {
+            formCard.classList.add('animate-tilt');
+        });
+        
+        formCard.addEventListener('mouseleave', () => {
+            formCard.classList.remove('animate-tilt');
+        });
+
+        // Auto-hide success/error messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const messages = document.querySelectorAll('[th\\:if*="param."], [th\\:if*="success"]');
+            messages.forEach(message => {
+                if (message && message.textContent.trim()) {
+                    setTimeout(() => {
+                        message.style.opacity = '0';
+                        message.style.transition = 'opacity 0.5s ease-in-out';
+                        setTimeout(() => {
+                            message.style.display = 'none';
+                        }, 500);
+                    }, 5000);
+                }
+            });
+        });
+
+        // Auto-focus first input on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstInput = document.getElementById('username');
+            if (firstInput) {
+                setTimeout(() => {
+                    firstInput.focus();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

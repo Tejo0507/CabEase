@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>My Bookings - CabEase</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <!-- Premium Header -->
+            <div class="text-center mb-5">
+                <h1 class="chrome-text" style="font-size: 3rem;">
+                    <i class="fas fa-history"></i> Elite Journey History
+                </h1>
+                <div class="speedometer mx-auto mb-4"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <a href="/bookings/new" class="btn btn-cta racing-stripes">
+                        <i class="fas fa-plus-circle"></i> Book Premium Ride
+                    </a>
+                </div>
+            </div>
+
+            <!-- Premium Bookings Display -->
+            <div class="row" th:if="${!#lists.isEmpty(bookings)}">
+                <div class="col-12">
+                    <div class="card carbon-fiber" style="border: 2px solid var(--primary); box-shadow: 0 0 50px rgba(255, 107, 0, 0.3);">
+                        <div class="card-header text-center" style="background: var(--gradient-luxury); border-radius: 23px 23px 0 0;">
+                            <h3 class="mb-0" style="color: var(--dark); font-weight: 900;">
+                                <i class="fas fa-crown"></i> Your Premium Journeys
+                            </h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-dark mb-0" style="background: transparent;">
+                                    <thead style="background: var(--gradient-carbon);">
+                                        <tr>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-hashtag"></i> ID
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-car"></i> Elite Vehicle
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-map-marker-alt"></i> Pickup
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-flag-checkered"></i> Destination
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-clock"></i> Date & Time
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-info-circle"></i> Status
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-dollar-sign"></i> Fare
+                                            </th>
+                                            <th style="border-color: var(--primary); color: var(--accent);">
+                                                <i class="fas fa-cogs"></i> Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="booking : ${bookings}" style="border-color: rgba(255, 107, 0, 0.2);">
+                                            <td th:text="${booking.id}" style="color: white; font-weight: bold;"></td>
+                                            <td style="color: var(--accent);">
+                                                <i class="fas fa-car"></i>
+                                                <span th:text="${booking.cab.model + ' (' + booking.cab.cabNumber + ')'}"></span>
+                                            </td>
+                                            <td th:text="${booking.pickupLocation}" style="color: white;"></td>
+                                            <td th:text="${booking.dropLocation}" style="color: white;"></td>
+                                            <td th:text="${#temporals.format(booking.bookingDateTime, 'yyyy-MM-dd HH:mm')}" style="color: white;"></td>
+                                            <td>
+                                                <span th:if="${booking.status == 'CONFIRMED'}" 
+                                                      class="badge" 
+                                                      style="background: var(--gradient-racing); color: white; padding: 8px 12px;">
+                                                    <i class="fas fa-check-circle"></i> CONFIRMED
+                                                </span>
+                                                <span th:if="${booking.status == 'CANCELLED'}" 
+                                                      class="badge" 
+                                                      style="background: var(--danger); color: white; padding: 8px 12px;">
+                                                    <i class="fas fa-times-circle"></i> CANCELLED
+                                                </span>
+                                                <span th:if="${booking.status == 'COMPLETED'}" 
+                                                      class="badge" 
+                                                      style="background: var(--gradient-luxury); color: var(--dark); padding: 8px 12px;">
+                                                    <i class="fas fa-trophy"></i> COMPLETED
+                                                </span>
+                                                <span th:if="${booking.status == 'PENDING'}" 
+                                                      class="badge" 
+                                                      style="background: var(--warning); color: var(--dark); padding: 8px 12px;">
+                                                    <i class="fas fa-clock"></i> PENDING
+                                                </span>
+                                            </td>
+                                            <td style="color: var(--accent); font-weight: bold;">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                <span th:text="${booking.fare}"></span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a th:if="${booking.status == 'CONFIRMED'}" 
+                                                       th:href="@{'/bookings/cancel/' + ${booking.id}}" 
+                                                       class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-ban"></i> Cancel
+                                                    </a>
+                                                    <a th:if="${booking.status == 'COMPLETED'}" 
+                                                       th:href="@{'/feedback/new/' + ${booking.id}}" 
+                                                       class="btn btn-sm btn-luxury">
+                                                        <i class="fas fa-star"></i> Review
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Bookings State -->
+            <div th:if="${#lists.isEmpty(bookings)}" class="row">
+                <div class="col-12">
+                    <div class="card carbon-fiber text-center" style="border: 2px solid var(--primary); min-height: 400px; display: flex; align-items: center;">
+                        <div class="card-body">
+                            <div class="car-icon mb-4" style="transform: scale(2);"></div>
+                            <h3 class="chrome-text mb-3">No Premium Journeys Yet</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.2rem; margin-bottom: 30px;">
+                                Start your elite transportation experience today!
+                            </p>
+                            <a href="/bookings/new" class="btn btn-cta racing-stripes">
+                                <i class="fas fa-rocket"></i> Book Your First Elite Ride
+                            </a>
+                            <div class="mt-4">
+                                <div class="d-flex justify-content-center gap-3">
+                                    <div class="dashboard-light fuel" title="Fleet Ready"></div>
+                                    <div class="dashboard-light battery" title="System Online"></div>
+                                    <div class="dashboard-light engine" title="Ready to Serve"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Stats (when bookings exist) -->
+            <div th:if="${!#lists.isEmpty(bookings)}" class="row mt-5">
+                <div class="col-12 text-center">
+                    <h4 class="chrome-text mb-4">Your Premium Statistics</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card carbon-fiber">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-route card-icon"></i>
+                                    <h5 class="chrome-text">Total Journeys</h5>
+                                    <p class="h4" style="color: var(--accent);" th:text="${#lists.size(bookings)}">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card carbon-fiber">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-trophy card-icon"></i>
+                                    <h5 class="chrome-text">Status</h5>
+                                    <p class="h4" style="color: var(--accent);">Elite Member</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card carbon-fiber">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-star card-icon"></i>
+                                    <h5 class="chrome-text">Rating</h5>
+                                    <p class="h4" style="color: var(--accent);">5.0 ⭐</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card carbon-fiber">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-gem card-icon"></i>
+                                    <h5 class="chrome-text">Tier</h5>
+                                    <p class="h4" style="color: var(--accent);">Premium</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

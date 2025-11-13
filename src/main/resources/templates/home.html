@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Welcome to CabEase</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <section class="hero">
+            <canvas id="particle-canvas"></canvas>
+            <h1 data-text="Welcome to CabEase">Welcome to CabEase</h1>
+            <p>Your reliable and convenient cab booking service. Book a cab anytime, anywhere.</p>
+            <div th:if="${!authenticated}">
+                <a class="btn btn-cta" href="/register">Get Started</a>
+                <a class="btn btn-cta ms-3" href="/login">Login</a>
+            </div>
+            <div th:if="${authenticated}">
+                <a class="btn btn-cta" href="/bookings/new">Book a Cab</a>
+                <a class="btn btn-cta ms-3" href="/bookings">My Bookings</a>
+            </div>
+            <!-- Premium Car-themed floating icons -->
+            <div class="taxi-icon floating-icon" style="top: 20%; left: 10%;"></div>
+            <i class="fas fa-map-marker-alt floating-icon" style="top: 30%; right: 15%; color: var(--accent);"></i>
+            <i class="fas fa-tachometer-alt floating-icon" style="bottom: 20%; left: 20%; color: var(--primary);"></i>
+            <div class="car-icon floating-icon" style="top: 40%; left: 30%;"></div>
+            <i class="fas fa-road floating-icon" style="bottom: 30%; right: 20%; color: var(--success);"></i>
+            <i class="fas fa-crown floating-icon" style="top: 50%; right: 30%; color: var(--accent);"></i>
+            
+            <!-- Premium dashboard lights -->
+            <div class="dashboard-light engine floating-icon" style="top: 60%; left: 15%;"></div>
+            <div class="dashboard-light fuel floating-icon" style="top: 70%; right: 25%;"></div>
+            <div class="speedometer floating-icon" style="top: 80%; left: 50%;"></div>
+            <!-- Morphing shapes -->
+            <div class="morphing-shape" style="top: 10%; right: 10%;"></div>
+            <div class="morphing-shape" style="bottom: 10%; left: 10%;"></div>
+            <div class="morphing-shape" style="top: 60%; left: 50%;"></div>
+            <div class="morphing-shape" style="bottom: 40%; right: 40%;"></div>
+        </section>
+
+        <section class="feature-section fade-in">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 slide-in-left">
+                        <div class="card text-center">
+                            <div class="card-body carbon-fiber">
+                                <i class="fas fa-mobile-alt card-icon"></i>
+                                <h5 class="card-title chrome-text">Easy Booking</h5>
+                                <p class="card-text">Book your premium ride in seconds with our luxury interface. Experience the future of transportation.</p>
+                                <div class="racing-stripes"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 fade-in">
+                        <div class="card text-center">
+                            <div class="card-body carbon-fiber">
+                                <i class="fas fa-satellite-dish card-icon"></i>
+                                <h5 class="card-title chrome-text">GPS Precision</h5>
+                                <p class="card-text">Advanced GPS tracking with real-time updates. Know exactly where your luxury ride is at all times.</p>
+                                <div class="racing-stripes"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 slide-in-right">
+                        <div class="card text-center">
+                            <div class="card-body carbon-fiber">
+                                <i class="fas fa-shield-alt card-icon"></i>
+                                <h5 class="card-title chrome-text">Premium Support</h5>
+                                <p class="card-text">Concierge-level support available 24/7. Experience white-glove service that matches our premium rides.</p>
+                                <div class="racing-stripes"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="booking-form-section py-5">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="booking-form">
+                            <h2 class="text-center mb-4" style="color: white;">Book Your Cab Now</h2>
+                            <form th:action="@{/bookings/new}" method="get">
+                                <div class="form-group">
+                                    <label for="pickup" class="form-label">Pickup Location</label>
+                                    <input type="text" class="form-control" id="pickup" placeholder="Enter pickup location">
+                                    <i class="fas fa-map-marker-alt input-icon"></i>
+                                </div>
+                                <div class="form-group">
+                                    <label for="dropoff" class="form-label">Drop-off Location</label>
+                                    <input type="text" class="form-control" id="dropoff" placeholder="Enter drop-off location">
+                                    <i class="fas fa-map-marker-alt input-icon"></i>
+                                </div>
+                                <div class="form-group">
+                                    <label for="datetime" class="form-label">Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="datetime">
+                                    <i class="fas fa-calendar-alt input-icon"></i>
+                                </div>
+                                <button type="submit" class="btn btn-submit">Book Now</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="animated-map-section py-5">
+            <div class="container">
+                <h2 class="text-center mb-4" style="color: white;">Experience Our Dynamic Routes</h2>
+                <div class="animated-map">
+                    <svg width="100%" height="100%" viewBox="0 0 400 300">
+                        <path class="map-path" d="M50 150 Q100 50 200 100 T350 150" />
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer text-center">
+            <div class="container">
+                <h3 style="color: white;">Follow Us</h3>
+                <div>
+                    <i class="fab fa-facebook social-icon"></i>
+                    <i class="fab fa-twitter social-icon"></i>
+                    <i class="fab fa-instagram social-icon"></i>
+                    <i class="fab fa-linkedin social-icon"></i>
+                </div>
+                <p style="color: rgba(255,255,255,0.7); margin-top: 20px;">&copy; 2023 CabEase. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

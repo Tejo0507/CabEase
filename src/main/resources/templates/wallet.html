@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>CabEase - My Wallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        /* Wallet Dashboard Luxury Theme */
+        :root {
+            --primary-dark: #1a1a2e;
+            --secondary-dark: #16213e;
+            --accent-dark: #0f3460;
+            --gold-accent: #fbbf24;
+            --teal-accent: #14b8a6;
+            --orange-accent: #ff6b35;
+            --success-green: #22c55e;
+            --error-red: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 50%, var(--accent-dark) 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Header */
+        .luxury-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(45deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Main Container */
+        .wallet-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Wallet Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, var(--gold-accent), #f59e0b);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(251, 191, 36, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .balance-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .balance-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .balance-label {
+            color: var(--primary-dark);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .balance-amount {
+            color: var(--primary-dark);
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .currency {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-recharge {
+            background: var(--primary-dark);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-recharge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-history {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--primary-dark);
+            border: 2px solid var(--primary-dark);
+        }
+
+        .btn-history:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Quick Recharge */
+        .quick-recharge {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recharge-amounts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .amount-btn {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .amount-btn:hover {
+            border-color: var(--gold-accent);
+            background: rgba(251, 191, 36, 0.2);
+            transform: scale(1.05);
+        }
+
+        .custom-amount {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .amount-input {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--gold-accent);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+        }
+
+        .amount-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Transaction History */
+        .transaction-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .transaction-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            background: rgba(0, 0, 0, 0.3);
+            transform: translateX(5px);
+        }
+
+        .txn-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .txn-icon.credit {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-green);
+        }
+
+        .txn-icon.debit {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error-red);
+        }
+
+        .txn-icon.refund {
+            background: rgba(20, 184, 166, 0.2);
+            color: var(--teal-accent);
+        }
+
+        .txn-info {
+            flex: 1;
+        }
+
+        .txn-description {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .txn-details {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+
+        .txn-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .txn-amount.credit {
+            color: var(--success-green);
+        }
+
+        .txn-amount.debit {
+            color: var(--error-red);
+        }
+
+        .txn-amount.refund {
+            color: var(--teal-accent);
+        }
+
+        .txn-balance {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+            text-align: right;
+        }
+
+        /* Stats Cards */
+        .stats-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-value {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+
+        /* Chart */
+        .chart-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .page-btn.active {
+            background: var(--gold-accent);
+            color: var(--primary-dark);
+            border-color: var(--gold-accent);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .balance-amount {
+                font-size: 2.5rem;
+            }
+
+            .balance-actions {
+                flex-direction: column;
+            }
+
+            .recharge-amounts {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Header -->
+        <header class="luxury-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <i class="fas fa-taxi logo-icon" style="font-size: 2rem; color: var(--gold-accent);"></i>
+                    <span class="logo-text">CabEase</span>
+                </div>
+                <nav style="display: flex; gap: 1.5rem; align-items: center;">
+                    <a href="/booking-dashboard" style="color: white; text-decoration: none;">
+                        <i class="fas fa-car"></i> Book Ride
+                    </a>
+                    <a href="/wallet" style="color: var(--gold-accent); text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-wallet"></i> Wallet
+                    </a>
+                    <a href="/payment-methods" style="color: white; text-decoration: none;">
+                        <i class="fas fa-credit-card"></i> Payments
+                    </a>
+                    <a href="/analytics-dashboard" style="color: white; text-decoration: none;">
+                        <i class="fas fa-chart-line"></i> Analytics
+                    </a>
+                    <a href="/fare-calculator" style="color: white; text-decoration: none;">
+                        <i class="fas fa-calculator"></i> Fare Calculator
+                    </a>
+                    <a href="/schedule-ride" style="color: white; text-decoration: none;">
+                        <i class="fas fa-calendar-plus"></i> Schedule Ride
+                    </a>
+                    <a href="/profile" style="color: white; text-decoration: none;">
+                        <i class="fas fa-user-circle"></i> Profile
+                    </a>
+                    <a href="/logout" style="color: white; text-decoration: none;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="wallet-container">
+            <!-- Alert Messages -->
+            <div id="alertSuccess" class="alert alert-success"></div>
+            <div id="alertError" class="alert alert-error"></div>
+
+            <!-- Wallet Balance Card -->
+            <div class="balance-card">
+                <div class="balance-content">
+                    <p class="balance-label">💰 Your Wallet Balance</p>
+                    <div class="balance-amount">
+                        <span class="currency">₹</span>
+                        <span id="walletBalance">0.00</span>
+                    </div>
+                    <div class="balance-actions">
+                        <button class="action-btn btn-recharge" onclick="scrollToRecharge()">
+                            <i class="fas fa-plus-circle"></i> Recharge Wallet
+                        </button>
+                        <button class="action-btn btn-history" onclick="scrollToHistory()">
+                            <i class="fas fa-history"></i> View History
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Recharge Section -->
+            <div class="quick-recharge" id="rechargeSection">
+                <h2 class="section-title">
+                    <i class="fas fa-bolt"></i> Quick Recharge
+                </h2>
+                <div class="recharge-amounts">
+                    <button class="amount-btn" onclick="rechargeAmount(100)">₹100</button>
+                    <button class="amount-btn" onclick="rechargeAmount(500)">₹500</button>
+                    <button class="amount-btn" onclick="rechargeAmount(1000)">₹1,000</button>
+                    <button class="amount-btn" onclick="rechargeAmount(2000)">₹2,000</button>
+                    <button class="amount-btn" onclick="rechargeAmount(5000)">₹5,000</button>
+                    <button class="amount-btn" onclick="rechargeAmount(10000)">₹10,000</button>
+                </div>
+                <div class="custom-amount">
+                    <input type="number" id="customAmount" class="amount-input" placeholder="Enter custom amount" min="1" max="50000">
+                    <button class="action-btn btn-recharge" onclick="rechargeCustomAmount()" style="flex: 0;">
+                        <i class="fas fa-paper-plane"></i> Recharge
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Transaction History -->
+                <div class="transaction-section" id="historySection">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="section-title" style="margin: 0;">
+                            <i class="fas fa-receipt"></i> Transaction History
+                        </h2>
+                        <button class="page-btn" onclick="loadTransactions(0)">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div id="transactionList" class="transaction-list">
+                        <!-- Transactions will be loaded here -->
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <p>No transactions yet</p>
+                        </div>
+                    </div>
+
+                    <div id="pagination" class="pagination"></div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-section">
+                    <!-- Total Spent -->
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.2); color: var(--error-red);">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <span style="color: white; font-weight: 600;">Total Spent</span>
+                        </div>
+                        <div class="stat-value" id="totalSpent">₹0.00</div>
+                        <p class="stat-label">This month</p>
+                    </div>
+
+                    <!-- Total Recharged -->
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.2); color: var(--success-green);">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <span style="color: white; font-weight: 600;">Total Recharged</span>
+                        </div>
+                        <div class="stat-value" id="totalRecharged">₹0.00</div>
+                        <p class="stat-label">This month</p>
+                    </div>
+
+                    <!-- Transactions Count -->
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(20, 184, 166, 0.2); color: var(--teal-accent);">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <span style="color: white; font-weight: 600;">Transactions</span>
+                        </div>
+                        <div class="stat-value" id="transactionCount">0</div>
+                        <p class="stat-label">This month</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Chart -->
+            <div class="chart-container">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i> Monthly Activity
+                </h2>
+                <canvas id="activityChart" height="80"></canvas>
+            </div>
+        </div>
+
+        <script>
+            let userId = null;
+            let currentPage = 0;
+            let activityChart = null;
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', () => {
+                userId = [[${userId}]] || 1; // Default to 1 for testing
+                loadWalletBalance();
+                loadTransactions(0);
+                loadStats();
+                initChart();
+            });
+
+            // Load wallet balance
+            async function loadWalletBalance() {
+                try {
+                    const response = await fetch(`/api/payments/wallet/balance/${userId}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('walletBalance').textContent = result.data.toFixed(2);
+                    }
+                } catch (error) {
+                    console.error('Error loading balance:', error);
+                }
+            }
+
+            // Recharge wallet
+            async function rechargeAmount(amount) {
+                await rechargeWallet(amount);
+            }
+
+            async function rechargeCustomAmount() {
+                const amount = parseFloat(document.getElementById('customAmount').value);
+                
+                if (!amount || amount < 1) {
+                    showError('Please enter a valid amount (minimum ₹1)');
+                    return;
+                }
+
+                if (amount > 50000) {
+                    showError('Maximum recharge amount is ₹50,000');
+                    return;
+                }
+
+                await rechargeWallet(amount);
+                document.getElementById('customAmount').value = '';
+            }
+
+            async function rechargeWallet(amount) {
+                try {
+                    // Step 1: Create payment order (Mock or Real gateway)
+                    showInfo('Creating payment order...');
+                    const orderResponse = await fetch(
+                        `/api/payment-gateway/create-order?userId=${userId}&amount=${amount}&paymentType=WALLET_RECHARGE`,
+                        { method: 'POST' }
+                    );
+                    const orderResult = await orderResponse.json();
+
+                    if (!orderResult.success) {
+                        showError('Failed to create order: ' + orderResult.message);
+                        return;
+                    }
+
+                    // Step 2: Show mock payment modal
+                    showMockPaymentModal(orderResult.data, amount);
+
+                } catch (error) {
+                    console.error('Error initiating payment:', error);
+                    showError('Failed to initiate payment');
+                }
+            }
+
+            // Show mock payment modal
+            function showMockPaymentModal(orderData, amount) {
+                const modal = document.createElement('div');
+                modal.id = 'mockPaymentModal';
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.9); display: flex;
+                    align-items: center; justify-content: center; z-index: 99999;
+                    animation: fadeIn 0.3s ease;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 40px; 
+                                border-radius: 20px; max-width: 500px; width: 90%; 
+                                box-shadow: 0 20px 60px rgba(251, 191, 36, 0.3);
+                                border: 2px solid rgba(251, 191, 36, 0.3);
+                                animation: slideUp 0.4s ease;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 60px; margin-bottom: 20px;">🎭</div>
+                            <h2 style="color: #fbbf24; margin-bottom: 10px; font-size: 28px; font-weight: 700;">
+                                Mock Payment Gateway
+                            </h2>
+                            <p style="color: #94a3b8; margin-bottom: 30px; font-size: 14px;">
+                                Development Mode - No real money involved
+                            </p>
+                            
+                            <div style="background: rgba(251, 191, 36, 0.1); border-radius: 12px; 
+                                        padding: 20px; margin-bottom: 30px; border: 1px solid rgba(251, 191, 36, 0.2);">
+                                <div style="color: #94a3b8; font-size: 14px; margin-bottom: 5px;">Amount to Pay</div>
+                                <div style="color: #fbbf24; font-size: 36px; font-weight: 700;">₹${amount}</div>
+                            </div>
+
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; 
+                                        padding: 15px; margin-bottom: 30px; text-align: left;">
+                                <div style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">Order Details:</div>
+                                <div style="color: #e2e8f0; font-size: 13px; font-family: monospace; word-break: break-all;">
+                                    Order ID: ${orderData.orderId}<br>
+                                    Status: ${orderData.status}<br>
+                                    Currency: ${orderData.currency}
+                                </div>
+                            </div>
+
+                            <p style="color: #fbbf24; margin-bottom: 25px; font-size: 15px;">
+                                ✨ Click below to complete mock payment instantly
+                            </p>
+
+                            <div style="display: flex; gap: 15px; justify-content: center;">
+                                <button onclick="completeMockPayment('${orderData.orderId}', ${amount})" 
+                                        style="background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+                                               color: #000; padding: 15px 40px; 
+                                               border: none; border-radius: 12px; font-size: 16px; 
+                                               font-weight: 700; cursor: pointer; 
+                                               transition: transform 0.2s, box-shadow 0.2s;
+                                               box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);"
+                                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(251, 191, 36, 0.6)';"
+                                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(251, 191, 36, 0.4)';">
+                                    ✅ Pay ₹${amount}
+                                </button>
+                                <button onclick="document.getElementById('mockPaymentModal').remove()" 
+                                        style="background: rgba(239, 68, 68, 0.2); color: #ef4444; 
+                                               padding: 15px 40px; border: 1px solid #ef4444;
+                                               border-radius: 12px; font-size: 16px; 
+                                               font-weight: 600; cursor: pointer; 
+                                               transition: background 0.2s;"
+                                        onmouseover="this.style.background='rgba(239, 68, 68, 0.3)';"
+                                        onmouseout="this.style.background='rgba(239, 68, 68, 0.2)';">
+                                    ❌ Cancel
+                                </button>
+                            </div>
+
+                            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <p style="color: #64748b; font-size: 12px;">
+                                    💡 This is a mock payment gateway for development.<br>
+                                    Switch to real gateway in production settings.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <style>
+                        @keyframes fadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        @keyframes slideUp {
+                            from { transform: translateY(50px); opacity: 0; }
+                            to { transform: translateY(0); opacity: 1; }
+                        }
+                    </style>
+                `;
+                
+                document.body.appendChild(modal);
+            }
+
+            // Complete mock payment
+            async function completeMockPayment(orderId, amount) {
+                try {
+                    showInfo('Processing payment...');
+                    
+                    // Generate mock payment ID and signature
+                    const mockPaymentId = 'pay_mock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const mockSignature = 'mock_sig_' + orderId + '_' + mockPaymentId + '_valid_' + Date.now();
+
+                    // Verify payment with backend
+                    const verifyResponse = await fetch(
+                        `/api/payment-gateway/verify-payment?amount=${amount}&paymentType=WALLET_RECHARGE`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                orderId: orderId,
+                                paymentId: mockPaymentId,
+                                signature: mockSignature,
+                                userId: userId
+                            })
+                        }
+                    );
+
+                    const verifyResult = await verifyResponse.json();
+                    
+                    // Remove modal
+                    const modal = document.getElementById('mockPaymentModal');
+                    if (modal) modal.remove();
+                    
+                    if (verifyResult.success) {
+                        showSuccess(`✅ Payment successful! ₹${amount} added to wallet.`);
+                        
+                        // Wait a moment for database to update, then refresh all data
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        // Reload all wallet data
+                        await Promise.all([
+                            loadWalletBalance(),
+                            loadTransactions(0),
+                            loadStats()
+                        ]);
+                        
+                        console.log('✅ Wallet data refreshed successfully');
+                    } else {
+                        showError('❌ Payment verification failed: ' + verifyResult.message);
+                    }
+                } catch (error) {
+                    console.error('Payment completion error:', error);
+                    const modal = document.getElementById('mockPaymentModal');
+                    if (modal) modal.remove();
+                    showError('Payment failed. Please try again.');
+                }
+            }
+
+            // Load transactions
+            async function loadTransactions(page) {
+                currentPage = page;
+                
+                try {
+                    const response = await fetch(`/api/payments/wallet/transactions/${userId}?page=${page}&size=10`);
+                    const result = await response.json();
+
+                    if (result.success && result.data.content.length > 0) {
+                        displayTransactions(result.data.content);
+                        displayPagination(result.data);
+                    } else {
+                        document.getElementById('transactionList').innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <p>No transactions yet</p>
+                            </div>
+                        `;
+                        document.getElementById('pagination').innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error loading transactions:', error);
+                }
+            }
+
+            // Display transactions
+            function displayTransactions(transactions) {
+                const container = document.getElementById('transactionList');
+                
+                if (transactions.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <p>No transactions yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = transactions.map(txn => {
+                    const type = txn.transactionType.toLowerCase();
+                    let icon, sign;
+
+                    switch (type) {
+                        case 'credit':
+                        case 'refund':
+                            icon = 'fa-arrow-down';
+                            sign = '+';
+                            break;
+                        case 'debit':
+                            icon = 'fa-arrow-up';
+                            sign = '-';
+                            break;
+                    }
+
+                    const date = new Date(txn.createdAt);
+                    const formattedDate = date.toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    return `
+                        <div class="transaction-item">
+                            <div class="txn-icon ${type}">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="txn-info">
+                                <div class="txn-description">${txn.description}</div>
+                                <div class="txn-details">
+                                    ${formattedDate} • ${txn.transactionId}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="txn-amount ${type}">${sign}₹${txn.amount.toFixed(2)}</div>
+                                <div class="txn-balance">Balance: ₹${txn.balanceAfter.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Display pagination
+            function displayPagination(pageData) {
+                const container = document.getElementById('pagination');
+                
+                if (pageData.totalPages <= 1) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                let html = '';
+
+                // Previous button
+                if (pageData.number > 0) {
+                    html += `<button class="page-btn" onclick="loadTransactions(${pageData.number - 1})">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>`;
+                }
+
+                // Page numbers
+                for (let i = 0; i < pageData.totalPages; i++) {
+                    html += `<button class="page-btn ${i === pageData.number ? 'active' : ''}" onclick="loadTransactions(${i})">
+                        ${i + 1}
+                    </button>`;
+                }
+
+                // Next button
+                if (pageData.number < pageData.totalPages - 1) {
+                    html += `<button class="page-btn" onclick="loadTransactions(${pageData.number + 1})">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>`;
+                }
+
+                container.innerHTML = html;
+            }
+
+            // Load stats
+            async function loadStats() {
+                try {
+                    const response = await fetch(`/api/payments/wallet/recent/${userId}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const transactions = result.data;
+                        
+                        // Calculate this month's stats
+                        const now = new Date();
+                        const thisMonth = transactions.filter(txn => {
+                            const txnDate = new Date(txn.createdAt);
+                            return txnDate.getMonth() === now.getMonth() && 
+                                   txnDate.getFullYear() === now.getFullYear();
+                        });
+
+                        const totalSpent = thisMonth
+                            .filter(txn => txn.transactionType === 'DEBIT')
+                            .reduce((sum, txn) => sum + txn.amount, 0);
+
+                        const totalRecharged = thisMonth
+                            .filter(txn => txn.transactionType === 'CREDIT' || txn.transactionType === 'REFUND')
+                            .reduce((sum, txn) => sum + txn.amount, 0);
+
+                        document.getElementById('totalSpent').textContent = `₹${totalSpent.toFixed(2)}`;
+                        document.getElementById('totalRecharged').textContent = `₹${totalRecharged.toFixed(2)}`;
+                        document.getElementById('transactionCount').textContent = thisMonth.length;
+
+                        updateChart(transactions);
+                    }
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+
+            // Initialize chart
+            function initChart() {
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                activityChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Credits',
+                            data: [],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Debits',
+                            data: [],
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    callback: function(value) {
+                                        return '₹' + value;
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Update chart
+            function updateChart(transactions) {
+                const last7Days = [];
+                const credits = [];
+                const debits = [];
+
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                    last7Days.push(dateStr);
+
+                    const dayTransactions = transactions.filter(txn => {
+                        const txnDate = new Date(txn.createdAt);
+                        return txnDate.toDateString() === date.toDateString();
+                    });
+
+                    const dayCredits = dayTransactions
+                        .filter(txn => txn.transactionType === 'CREDIT' || txn.transactionType === 'REFUND')
+                        .reduce((sum, txn) => sum + txn.amount, 0);
+
+                    const dayDebits = dayTransactions
+                        .filter(txn => txn.transactionType === 'DEBIT')
+                        .reduce((sum, txn) => sum + txn.amount, 0);
+
+                    credits.push(dayCredits);
+                    debits.push(dayDebits);
+                }
+
+                activityChart.data.labels = last7Days;
+                activityChart.data.datasets[0].data = credits;
+                activityChart.data.datasets[1].data = debits;
+                activityChart.update();
+            }
+
+            // Scroll functions
+            function scrollToRecharge() {
+                document.getElementById('rechargeSection').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function scrollToHistory() {
+                document.getElementById('historySection').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // Alert functions
+            function showSuccess(message) {
+                const alert = document.getElementById('alertSuccess');
+                alert.textContent = message;
+                alert.classList.add('active');
+                setTimeout(() => alert.classList.remove('active'), 5000);
+            }
+
+            function showError(message) {
+                const alert = document.getElementById('alertError');
+                alert.textContent = message;
+                alert.classList.add('active');
+                setTimeout(() => alert.classList.remove('active'), 5000);
+            }
+
+            function showInfo(message) {
+                // Create temporary info alert if it doesn't exist
+                let alert = document.getElementById('alertInfo');
+                if (!alert) {
+                    alert = document.createElement('div');
+                    alert.id = 'alertInfo';
+                    alert.style.cssText = `
+                        position: fixed; top: 20px; right: 20px;
+                        background: linear-gradient(135deg, #3b82f6, #2563eb);
+                        color: white; padding: 1rem 1.5rem;
+                        border-radius: 12px; font-weight: 600;
+                        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+                        z-index: 99999; opacity: 0;
+                        transition: opacity 0.3s ease, transform 0.3s ease;
+                        transform: translateY(-20px);
+                    `;
+                    document.body.appendChild(alert);
+                }
+                alert.textContent = message;
+                alert.style.opacity = '1';
+                alert.style.transform = 'translateY(0)';
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                }, 3000);
+            }
+        </script>
+    </div>
+</body>
+</html>

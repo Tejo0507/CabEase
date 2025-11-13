@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Something went wrong</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background: #0f172a; color: #e6eef8; display:flex; align-items:center; justify-content:center; height:100vh; margin:0 }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); padding:32px; border-radius:12px; box-shadow: 0 10px 30px rgba(2,6,23,0.6); width:720px }
+    h1 { margin:0 0 8px 0; font-size:28px }
+    p { margin:0 0 16px 0; color:#cfe3ff }
+    .meta { font-size:13px; color:#9fb7d6 }
+    a.btn { display:inline-block; margin-top:16px; padding:10px 16px; background:#0ea5a1; color:white; border-radius:8px; text-decoration:none }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Something went wrong</h1>
+    <p>We're sorry — an unexpected error occurred while processing your request.</p>
+    <div class="meta">Status: <strong th:text="${status}">${status}</strong></div>
+    <div class="meta">Message: <strong th:text="${message}">${message}</strong></div>
+    <a href="/" class="btn">Return home</a>
+  </div>
+</body>
+</html>

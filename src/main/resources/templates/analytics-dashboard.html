@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - CabEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-dark: #1a1a2e;
+            --secondary-dark: #16213e;
+            --accent-dark: #0f3460;
+            --gold-accent: #fbbf24;
+            --teal-accent: #14b8a6;
+            --orange-accent: #ff6b35;
+            --success-green: #22c55e;
+            --error-red: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 50%, var(--accent-dark) 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Luxury Header */
+        .luxury-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .logo-text {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-nav-icons {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .feature-icon-link {
+            width: 48px;
+            height: 48px;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            font-size: 1.25rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon-link:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        .feature-icon-link.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(20, 184, 166, 0.2));
+            border-color: var(--gold-accent);
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-email {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+        }
+
+        .logout-btn {
+            padding: 0.625rem 1.25rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error-red);
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(251, 191, 36, 0.3);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .stat-card.primary::before {
+            background: linear-gradient(180deg, var(--gold-accent) 0%, var(--teal-accent) 100%);
+        }
+
+        .stat-card.success::before {
+            background: linear-gradient(180deg, var(--success-green) 0%, #16a34a 100%);
+        }
+
+        .stat-card.warning::before {
+            background: linear-gradient(180deg, var(--orange-accent) 0%, #ea580c 100%);
+        }
+
+        .stat-card.info::before {
+            background: linear-gradient(180deg, var(--teal-accent) 0%, #0d9488 100%);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card.primary .stat-icon {
+            background: linear-gradient(135deg, var(--gold-accent) 0%, var(--teal-accent) 100%);
+            color: var(--primary-dark);
+        }
+
+        .stat-card.success .stat-icon {
+            background: linear-gradient(135deg, var(--success-green) 0%, #16a34a 100%);
+            color: white;
+        }
+
+        .stat-card.warning .stat-icon {
+            background: linear-gradient(135deg, var(--orange-accent) 0%, #ea580c 100%);
+            color: white;
+        }
+
+        .stat-card.info .stat-icon {
+            background: linear-gradient(135deg, var(--teal-accent) 0%, #0d9488 100%);
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Chart Containers */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 0 2rem;
+        }
+
+        .chart-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-title i {
+            color: var(--gold-accent);
+        }
+
+        /* Recent Activity */
+        .activity-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            margin: 0 2rem 2rem 2rem;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .activity-item:hover {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: var(--gold-accent);
+            transform: translateX(5px);
+        }
+
+        .activity-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.completed {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-green);
+            border: 1px solid var(--success-green);
+        }
+
+        .activity-icon.cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error-red);
+            border: 1px solid var(--error-red);
+        }
+
+        .activity-icon.pending {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--orange-accent);
+            border: 1px solid var(--orange-accent);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-route {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-details {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .activity-fare {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gold-accent);
+        }
+
+        /* Popular Routes */
+        .routes-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .route-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .route-item:hover {
+            border-color: var(--gold-accent);
+            transform: translateX(5px);
+        }
+
+        .route-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-accent) 0%, var(--teal-accent) 100%);
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .route-info {
+            flex: 1;
+        }
+
+        .route-path {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .route-count {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+            border-color: var(--gold-accent);
+        }
+
+        .action-btn i {
+            font-size: 2rem;
+            color: var(--gold-accent);
+        }
+
+        .action-btn span {
+            font-weight: 600;
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Luxury Header -->
+    <header class="luxury-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <i class="fas fa-taxi logo-icon"></i>
+                <span class="logo-text">CabEase</span>
+            </div>
+            
+            <nav class="feature-nav-icons">
+                <a href="/booking-dashboard" class="feature-icon-link" title="Book Ride">
+                    <i class="fas fa-car"></i>
+                </a>
+                <a href="/fare-calculator" class="feature-icon-link" title="Fare Calculator">
+                    <i class="fas fa-calculator"></i>
+                </a>
+                <a href="/schedule-ride" class="feature-icon-link" title="Schedule Ride">
+                    <i class="fas fa-calendar-plus"></i>
+                </a>
+                <a href="/analytics-dashboard" class="feature-icon-link active" title="Analytics">
+                    <i class="fas fa-chart-line"></i>
+                </a>
+                <a href="/wallet" class="feature-icon-link" title="Wallet">
+                    <i class="fas fa-wallet"></i>
+                </a>
+                <a href="/payment-methods" class="feature-icon-link" title="Payment Methods">
+                    <i class="fas fa-credit-card"></i>
+                </a>
+                <a href="/profile" class="feature-icon-link" title="Profile">
+                    <i class="fas fa-user-circle"></i>
+                </a>
+            </nav>
+            
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" th:if="${user != null}" th:text="${user.name}">User Name</div>
+                    <div class="user-name" th:if="${user == null}" th:text="${#authentication.principal.username}">User Name</div>
+                    <div class="user-email" th:if="${user != null}" th:text="${user.email}">user@email.com</div>
+                    <div class="user-email" th:if="${user == null}" th:text="${#authentication.name}">user@email.com</div>
+                </div>
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <i class="fas fa-spinner"></i>
+            <div>Loading your analytics...</div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div id="quickActions" class="quick-actions" style="display: none;">
+            <a href="/booking-dashboard" class="action-btn">
+                <i class="fas fa-car"></i>
+                <span>Book a Ride</span>
+            </a>
+            <a href="/wallet" class="action-btn">
+                <i class="fas fa-wallet"></i>
+                <span>Add Money</span>
+            </a>
+            <a href="/profile" class="action-btn">
+                <i class="fas fa-user-edit"></i>
+                <span>Edit Profile</span>
+            </a>
+            <a href="/payment-methods" class="action-btn">
+                <i class="fas fa-credit-card"></i>
+                <span>Manage Payments</span>
+            </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div id="statsGrid" class="stats-grid" style="display: none;"></div>
+
+        <!-- Charts Grid -->
+        <div id="chartsGrid" class="charts-grid" style="display: none;"></div>
+
+        <!-- Recent Activity -->
+        <div id="recentActivity" class="activity-container" style="display: none;">
+            <h2 class="chart-title">
+                <i class="fas fa-history"></i>
+                Recent Activity
+            </h2>
+            <div id="activityList" class="activity-list"></div>
+        </div>
+
+        <!-- Popular Routes -->
+        <div id="popularRoutes" class="chart-container" style="display: none;">
+            <h2 class="chart-title">
+                <i class="fas fa-route"></i>
+                Popular Routes
+            </h2>
+            <div id="routesList" class="routes-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        let dashboardData = null;
+
+        // Load dashboard on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    dashboardData = result.data;
+                    renderDashboard(dashboardData);
+                } else {
+                    showError(result.message || 'Failed to load dashboard');
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('Error loading dashboard');
+            }
+        }
+
+        // Render dashboard
+        function renderDashboard(data) {
+            // Hide loading
+            document.getElementById('loadingState').style.display = 'none';
+            
+            // Show sections
+            document.getElementById('quickActions').style.display = 'grid';
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('chartsGrid').style.display = 'grid';
+            document.getElementById('recentActivity').style.display = 'block';
+            document.getElementById('popularRoutes').style.display = 'block';
+
+            // Render stats
+            renderStats(data.overview);
+            
+            // Render charts
+            renderCharts(data);
+            
+            // Render recent activity
+            renderRecentActivity(data.recentActivity);
+            
+            // Render popular routes
+            renderPopularRoutes(data.popularRoutes);
+        }
+
+        // Render statistics cards
+        function renderStats(overview) {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = '';
+
+            const stats = [
+                {
+                    label: 'Total Rides',
+                    value: overview.totalRides || 0,
+                    icon: 'fa-car',
+                    type: 'primary'
+                },
+                {
+                    label: 'Completed Rides',
+                    value: overview.completedRides || 0,
+                    icon: 'fa-check-circle',
+                    type: 'success'
+                },
+                {
+                    label: 'Total Spent',
+                    value: `₹${(overview.totalSpent || 0).toFixed(2)}`,
+                    icon: 'fa-rupee-sign',
+                    type: 'warning'
+                },
+                {
+                    label: 'Wallet Balance',
+                    value: `₹${(overview.walletBalance || 0).toFixed(2)}`,
+                    icon: 'fa-wallet',
+                    type: 'info'
+                },
+                {
+                    label: 'Loyalty Points',
+                    value: overview.loyaltyPoints || 0,
+                    icon: 'fa-star',
+                    type: 'primary'
+                },
+                {
+                    label: 'Membership Tier',
+                    value: overview.membershipTier || 'SILVER',
+                    icon: 'fa-crown',
+                    type: 'warning'
+                }
+            ];
+
+            stats.forEach(stat => {
+                const card = document.createElement('div');
+                card.className = `stat-card ${stat.type} fade-in`;
+                card.innerHTML = `
+                    <div class="stat-icon">
+                        <i class="fas ${stat.icon}"></i>
+                    </div>
+                    <div class="stat-label">${stat.label}</div>
+                    <div class="stat-value">${stat.value}</div>
+                `;
+                statsGrid.appendChild(card);
+            });
+        }
+
+        // Render charts
+        function renderCharts(data) {
+            const chartsGrid = document.getElementById('chartsGrid');
+            chartsGrid.innerHTML = `
+                <div class="chart-container fade-in">
+                    <h2 class="chart-title">
+                        <i class="fas fa-chart-line"></i>
+                        Monthly Trends
+                    </h2>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+                <div class="chart-container fade-in">
+                    <h2 class="chart-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Rides by Status
+                    </h2>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            `;
+
+            // Monthly Trends Chart
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: data.monthlyTrends.map(t => `${t.month.substring(0, 3)} ${t.year}`),
+                    datasets: [{
+                        label: 'Total Spent (₹)',
+                        data: data.monthlyTrends.map(t => t.totalSpent || 0),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Status Pie Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusLabels = Object.keys(data.ridesByStatus);
+            const statusData = Object.values(data.ridesByStatus);
+            
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: [
+                            '#38a169',
+                            '#e53e3e',
+                            '#f59e0b',
+                            '#3b82f6',
+                            '#8b5cf6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render recent activity
+        function renderRecentActivity(activities) {
+            const activityList = document.getElementById('activityList');
+            activityList.innerHTML = '';
+
+            if (!activities || activities.length === 0) {
+                activityList.innerHTML = '<p style="text-align: center; color: #718096;">No recent activity</p>';
+                return;
+            }
+
+            activities.slice(0, 10).forEach(activity => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                
+                const statusClass = activity.status === 'COMPLETED' ? 'completed' : 
+                                  activity.status === 'CANCELLED' ? 'cancelled' : 'pending';
+                const statusIcon = activity.status === 'COMPLETED' ? 'fa-check' :
+                                 activity.status === 'CANCELLED' ? 'fa-times' : 'fa-clock';
+                
+                item.innerHTML = `
+                    <div class="activity-icon ${statusClass}">
+                        <i class="fas ${statusIcon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-route">${activity.pickupLocation} → ${activity.dropoffLocation}</div>
+                        <div class="activity-details">
+                            ${new Date(activity.date).toLocaleDateString()} • ${activity.vehicleType || 'N/A'}
+                        </div>
+                    </div>
+                    <div class="activity-fare">
+                        ${activity.fare ? `₹${activity.fare.toFixed(2)}` : 'N/A'}
+                    </div>
+                `;
+                activityList.appendChild(item);
+            });
+        }
+
+        // Render popular routes
+        function renderPopularRoutes(routes) {
+            const routesList = document.getElementById('routesList');
+            routesList.innerHTML = '';
+
+            if (!routes || routes.length === 0) {
+                routesList.innerHTML = '<p style="text-align: center; color: #718096;">No popular routes yet</p>';
+                return;
+            }
+
+            routes.forEach((route, index) => {
+                const item = document.createElement('div');
+                item.className = 'route-item';
+                item.innerHTML = `
+                    <div class="route-number">${index + 1}</div>
+                    <div class="route-info">
+                        <div class="route-path">${route.pickup} → ${route.dropoff}</div>
+                        <div class="route-count">${route.count} rides</div>
+                    </div>
+                `;
+                routesList.appendChild(item);
+            });
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('loadingState').innerHTML = `
+                <i class="fas fa-exclamation-circle" style="color: #e53e3e;"></i>
+                <div>${message}</div>
+            `;
+        }
+    </script>
+</body>
+</html>

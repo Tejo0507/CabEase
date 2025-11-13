@@ -1,0 +1,3 @@
+-- Sample Test Users (Plain text passwords - will be encoded by Spring on startup)
+-- Use email as username for login: testuser@cabease.com with password: user123
+-- Use email as username for login: admin@cabease.com with password: admin123

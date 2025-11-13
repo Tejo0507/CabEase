@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Simulator - CabEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SockJS and STOMP for WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: #fbbf24;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #14b8a6, #22c55e);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fbbf24, #ff6b35);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-display {
+            background: rgba(20, 184, 166, 0.2);
+            border: 1px solid #14b8a6;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #fbbf24;
+        }
+
+        .log-container {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .log-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .log-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .log-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .movement-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .direction-btn {
+            padding: 30px;
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .direction-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .auto-mode {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .auto-mode input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-car"></i> Driver Simulator</h1>
+
+        <!-- Configuration Card -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">🚗 Configuration</h2>
+            
+            <div class="form-group">
+                <label>Ride ID</label>
+                <input type="number" id="rideId" placeholder="Enter ride ID to simulate">
+            </div>
+
+            <div class="form-group">
+                <label>Cab ID</label>
+                <input type="number" id="cabId" placeholder="Enter cab ID">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="connectSimulator()">
+                    <i class="fas fa-plug"></i> Connect
+                </button>
+                <button class="btn btn-danger" onclick="disconnectSimulator()" disabled id="disconnectBtn">
+                    <i class="fas fa-plug-circle-xmark"></i> Disconnect
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Display -->
+        <div class="card" id="statusCard" style="display: none;">
+            <h2 style="margin-bottom: 20px;">📍 Current Status</h2>
+            
+            <div class="status-display">
+                <div class="status-item">
+                    <span class="status-label">Connection</span>
+                    <span class="status-value" id="connectionStatus">Disconnected</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Latitude</span>
+                    <span class="status-value" id="currentLat">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Longitude</span>
+                    <span class="status-value" id="currentLng">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Updates Sent</span>
+                    <span class="status-value" id="updateCount">0</span>
+                </div>
+            </div>
+
+            <!-- Manual Movement Controls -->
+            <h3 style="margin: 20px 0 10px 0;">🎮 Manual Movement</h3>
+            <div class="movement-grid">
+                <div></div>
+                <button class="direction-btn" onclick="moveDirection('N')">↑ N</button>
+                <div></div>
+                <button class="direction-btn" onclick="moveDirection('W')">← W</button>
+                <button class="direction-btn" onclick="moveDirection('C')" style="background: #fbbf24; color: #000;">●</button>
+                <button class="direction-btn" onclick="moveDirection('E')">→ E</button>
+                <div></div>
+                <button class="direction-btn" onclick="moveDirection('S')">↓ S</button>
+                <div></div>
+            </div>
+
+            <!-- Auto Movement -->
+            <div class="auto-mode">
+                <input type="checkbox" id="autoMode" onchange="toggleAutoMode()">
+                <label for="autoMode" style="margin: 0; cursor: pointer;">
+                    <strong>Auto-move towards pickup</strong> (simulates real driver movement)
+                </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn btn-warning" onclick="sendRandomLocation()">
+                    <i class="fas fa-shuffle"></i> Random Move
+                </button>
+                <button class="btn btn-primary" onclick="moveToPickup()">
+                    <i class="fas fa-location-dot"></i> Jump to Pickup
+                </button>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+            <h2 style="margin-bottom: 15px;">📜 Activity Log</h2>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">Simulator ready. Configure and connect to start.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let rideId = null;
+        let cabId = null;
+        let isConnected = false;
+        let currentLat = 13.0827; // Default: Chennai
+        let currentLng = 80.2707;
+        let pickupLat = null;
+        let pickupLng = null;
+        let updateCount = 0;
+        let autoMoveInterval = null;
+
+        function connectSimulator() {
+            rideId = document.getElementById('rideId').value;
+            cabId = document.getElementById('cabId').value;
+
+            if (!rideId || !cabId) {
+                logMessage('error', '❌ Please enter both Ride ID and Cab ID');
+                return;
+            }
+
+            // Fetch tracking data to get pickup location
+            fetch(`/api/v1/tracking/${rideId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        logMessage('error', '❌ Error: ' + data.error);
+                        return;
+                    }
+
+                    pickupLat = parseFloat(data.pickupLatitude);
+                    pickupLng = parseFloat(data.pickupLongitude);
+                    
+                    // Start from driver's current location
+                    currentLat = parseFloat(data.driverLatitude) || currentLat;
+                    currentLng = parseFloat(data.driverLongitude) || currentLng;
+
+                    logMessage('success', `✅ Loaded tracking data for Ride #${rideId}`);
+                    logMessage('info', `📍 Pickup: ${pickupLat.toFixed(4)}, ${pickupLng.toFixed(4)}`);
+                    
+                    connectWebSocket();
+                })
+                .catch(error => {
+                    logMessage('error', '❌ Failed to load tracking data: ' + error.message);
+                });
+        }
+
+        function connectWebSocket() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null; // Disable debug
+
+            stompClient.connect({}, function(frame) {
+                isConnected = true;
+                logMessage('success', '✅ WebSocket connected');
+                updateConnectionStatus(true);
+
+                // Show status card
+                document.getElementById('statusCard').style.display = 'block';
+                document.getElementById('disconnectBtn').disabled = false;
+
+                // Start tracking session
+                fetch(`/api/v1/tracking/start/${rideId}`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            logMessage('success', '✅ Tracking session started');
+                            sendLocationUpdate();
+                        }
+                    });
+
+            }, function(error) {
+                logMessage('error', '❌ WebSocket error: ' + error);
+                updateConnectionStatus(false);
+            });
+        }
+
+        function disconnectSimulator() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            isConnected = false;
+            updateConnectionStatus(false);
+            
+            // Stop auto-movement
+            if (autoMoveInterval) {
+                clearInterval(autoMoveInterval);
+                autoMoveInterval = null;
+                document.getElementById('autoMode').checked = false;
+            }
+
+            document.getElementById('statusCard').style.display = 'none';
+            document.getElementById('disconnectBtn').disabled = true;
+            logMessage('info', '📴 Disconnected from simulator');
+        }
+
+        function sendLocationUpdate() {
+            if (!isConnected || !stompClient) {
+                logMessage('error', '❌ Not connected');
+                return;
+            }
+
+            const locationUpdate = {
+                cabId: parseInt(cabId),
+                latitude: currentLat,
+                longitude: currentLng
+            };
+
+            stompClient.send(`/app/location/${rideId}`, {}, JSON.stringify(locationUpdate));
+            
+            updateCount++;
+            document.getElementById('currentLat').textContent = currentLat.toFixed(6);
+            document.getElementById('currentLng').textContent = currentLng.toFixed(6);
+            document.getElementById('updateCount').textContent = updateCount;
+
+            logMessage('success', `📡 Location sent: ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`);
+        }
+
+        function moveDirection(dir) {
+            const step = 0.001; // ~111 meters
+
+            switch(dir) {
+                case 'N': currentLat += step; break;
+                case 'S': currentLat -= step; break;
+                case 'E': currentLng += step; break;
+                case 'W': currentLng -= step; break;
+                case 'C': 
+                    // Center/current position - just update
+                    break;
+            }
+
+            sendLocationUpdate();
+        }
+
+        function sendRandomLocation() {
+            // Move randomly within ±0.01 degrees (~1km)
+            currentLat += (Math.random() - 0.5) * 0.02;
+            currentLng += (Math.random() - 0.5) * 0.02;
+            sendLocationUpdate();
+        }
+
+        function moveToPickup() {
+            if (!pickupLat || !pickupLng) {
+                logMessage('error', '❌ Pickup location not available');
+                return;
+            }
+
+            currentLat = pickupLat;
+            currentLng = pickupLng;
+            sendLocationUpdate();
+            logMessage('success', '🎯 Jumped to pickup location');
+        }
+
+        function toggleAutoMode() {
+            const isAuto = document.getElementById('autoMode').checked;
+
+            if (isAuto) {
+                if (!pickupLat || !pickupLng) {
+                    document.getElementById('autoMode').checked = false;
+                    logMessage('error', '❌ Pickup location not available for auto-mode');
+                    return;
+                }
+
+                logMessage('info', '🤖 Auto-movement enabled');
+                
+                // Move towards pickup every 3 seconds
+                autoMoveInterval = setInterval(() => {
+                    const diffLat = pickupLat - currentLat;
+                    const diffLng = pickupLng - currentLng;
+                    const distance = Math.sqrt(diffLat * diffLat + diffLng * diffLng);
+
+                    if (distance > 0.001) {
+                        // Move 10% closer each time
+                        currentLat += diffLat * 0.1;
+                        currentLng += diffLng * 0.1;
+                        sendLocationUpdate();
+                    } else {
+                        // Reached pickup
+                        clearInterval(autoMoveInterval);
+                        autoMoveInterval = null;
+                        document.getElementById('autoMode').checked = false;
+                        logMessage('success', '🏁 Reached pickup location');
+                    }
+                }, 3000);
+
+            } else {
+                if (autoMoveInterval) {
+                    clearInterval(autoMoveInterval);
+                    autoMoveInterval = null;
+                }
+                logMessage('info', '⏸️ Auto-movement disabled');
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = '✅ Connected';
+                statusEl.style.color = '#22c55e';
+            } else {
+                statusEl.textContent = '❌ Disconnected';
+                statusEl.style.color = '#ef4444';
+            }
+        }
+
+        function logMessage(type, message) {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.insertBefore(entry, logContainer.firstChild);
+            
+            // Keep only last 50 messages
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (autoMoveInterval) {
+                clearInterval(autoMoveInterval);
+            }
+            disconnectSimulator();
+        });
+    </script>
+</body>
+</html>

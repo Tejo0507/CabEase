@@ -1,0 +1,3183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>CabEase - Book Your Ride</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    
+    <!-- Define initMap BEFORE loading Google Maps API -->
+    <script>
+        // Global variables (must be defined before Google Maps API loads)
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let pickupAutocomplete;
+        let dropAutocomplete;
+        let currentRoute = null;
+        let selectedVehicle = 'mini';
+        let pickupMarker = null;
+        let dropMarker = null;
+        
+        // Initialize Google Maps (callback from Google Maps API)
+        function initMap() {
+            console.log('✅ Google Maps API loaded, initializing...');
+            // Actual initialization will happen after DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeMap);
+            } else {
+                initializeMap();
+            }
+        }
+    </script>
+    
+    <!-- Load Google Maps API with callback -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places,geometry&callback=initMap" async defer></script>
+    
+    <style>
+        /* CabEase Luxury Theme - Booking Dashboard */
+        :root {
+            --primary-dark: #1a1a2e;
+            --secondary-dark: #16213e;
+            --accent-dark: #0f3460;
+            --gold-accent: #fbbf24;
+            --teal-accent: #14b8a6;
+            --orange-accent: #ff6b35;
+            --success-green: #22c55e;
+            --error-red: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 50%, var(--accent-dark) 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Header Navigation */
+        .luxury-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--gold-accent);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(45deg, var(--gold-accent), var(--teal-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-email {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+        }
+
+        .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            border: 2px solid var(--gold-accent);
+        }
+
+        .logout-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: var(--orange-accent);
+            transform: translateY(-1px);
+        }
+
+        /* Feature Navigation Icons */
+        .feature-nav-icons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .feature-icon-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            min-width: 75px;
+            cursor: pointer;
+        }
+
+        .feature-icon-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .feature-icon-link:hover::before {
+            left: 100%;
+        }
+
+        .feature-icon-link::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 1rem;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-icon-link:hover::after {
+            opacity: 1;
+        }
+
+        .feature-icon-link:hover {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: var(--gold-accent);
+            color: white;
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.4), 
+                        0 0 20px rgba(251, 191, 36, 0.2);
+        }
+
+        .feature-icon-link.active {
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            border-color: var(--gold-accent);
+            color: var(--primary-dark);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5),
+                        0 0 25px rgba(251, 191, 36, 0.3);
+        }
+
+        .feature-icon-link.active:hover {
+            transform: translateY(-4px) scale(1.08);
+            box-shadow: 0 12px 30px rgba(251, 191, 36, 0.6),
+                        0 0 30px rgba(251, 191, 36, 0.4);
+        }
+
+        .feature-icon-link i {
+            font-size: 1.35rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .feature-icon-link:hover i {
+            transform: scale(1.2) rotate(5deg);
+            filter: drop-shadow(0 4px 8px rgba(251, 191, 36, 0.4));
+        }
+
+        .feature-icon-link.active i {
+            animation: iconPulse 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.5; 
+                transform: scale(1.3);
+            }
+        }
+
+        .feature-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon-link:hover .feature-label {
+            transform: scale(1.05);
+            letter-spacing: 1px;
+        }
+
+        /* Main Layout - Two Column */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: calc(100vh - 100px);
+        }
+
+        .booking-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            height: 100%;
+        }
+
+        /* Map Container */
+        .map-section {
+            position: relative;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 100;
+        }
+
+        .map-control-btn {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(15, 52, 96, 0.85));
+            border: 2px solid var(--glass-border);
+            color: white;
+            width: 3.75rem;
+            height: 3.75rem;
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(25px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+                        0 0 15px rgba(251, 191, 36, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .map-control-btn:hover::before {
+            left: 100%;
+        }
+
+        .map-control-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 1.25rem;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .map-control-btn:hover::after {
+            opacity: 0.2;
+        }
+
+        .map-control-btn:hover {
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            border-color: var(--gold-accent);
+            transform: scale(1.15) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.5),
+                        0 0 25px rgba(251, 191, 36, 0.3);
+        }
+
+        .map-control-btn:active {
+            transform: scale(1.05) translateY(-1px);
+        }
+
+        .map-control-btn i {
+            font-size: 1.4rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .map-control-btn:hover i {
+            transform: scale(1.2) rotate(15deg);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+        }
+
+        .map-control-btn:hover i {
+            transform: rotate(360deg) scale(1.15);
+        }
+
+        .map-control-btn:active {
+            transform: scale(0.95) translateY(0);
+        }
+
+        /* Booking Panel */
+        .booking-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Location Inputs */
+        .location-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--gold-accent);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+
+        .location-dot {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .pickup-dot {
+            background: var(--success-green);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        .drop-dot {
+            background: var(--error-red);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .location-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .location-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .location-input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px transparent inset;
+            -webkit-text-fill-color: white;
+        }
+
+        .current-location-btn {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            color: var(--gold-accent);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .current-location-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .current-location-btn:hover::before {
+            left: 100%;
+        }
+
+        .current-location-btn:hover {
+            color: white;
+            background: rgba(251, 191, 36, 0.2);
+            border-color: var(--gold-accent);
+            transform: scale(1.15);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        }
+
+        .current-location-btn i {
+            transition: all 0.4s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .current-location-btn:hover i {
+            animation: locationPing 1s ease infinite;
+        }
+
+        @keyframes locationPing {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .swap-container {
+            display: flex;
+            justify-content: center;
+            margin: 0.5rem 0;
+        }
+
+        .swap-btn {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            color: var(--teal-accent);
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .swap-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-accent), var(--gold-accent));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .swap-btn:hover::before {
+            opacity: 0.2;
+        }
+
+        .swap-btn:hover {
+            background: rgba(20, 184, 166, 0.25);
+            border-color: var(--teal-accent);
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+        }
+
+        .swap-btn i {
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .swap-btn:hover i {
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Route Button */
+        .route-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            border: 2px solid transparent;
+            color: white;
+            padding: 1.125rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .route-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .route-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .route-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(251, 191, 36, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .route-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .route-btn:disabled {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .route-btn i {
+            font-size: 1.4rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .route-btn:hover i {
+            transform: scale(1.25) rotate(15deg);
+            animation: routeIconSpin 0.8s ease infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        @keyframes routeIconSpin {
+            0%, 100% { transform: scale(1.25) rotate(15deg); }
+            50% { transform: scale(1.3) rotate(20deg); }
+        }
+
+        .route-btn .loading-spinner {
+            display: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .route-btn.loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .route-btn.loading i {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Route Info Card */
+        .route-info {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .route-info.show {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .route-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .route-stat {
+            text-align: center;
+        }
+
+        .route-stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .route-stat-value {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .fare-section {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .fare-label {
+            color: var(--gold-accent);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .fare-amount {
+            color: var(--success-green);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Vehicle Selection */
+        .vehicle-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .vehicle-option {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .vehicle-option::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .vehicle-option:hover::before {
+            opacity: 1;
+        }
+
+        .vehicle-option:hover {
+            border-color: var(--gold-accent);
+            background: rgba(251, 191, 36, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+        }
+
+        .vehicle-option.active {
+            border-color: var(--gold-accent);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(20, 184, 166, 0.15));
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+            animation: vehicleSelected 0.5s ease;
+        }
+
+        .vehicle-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--gold-accent);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.5);
+        }
+
+        @keyframes vehicleSelected {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .vehicle-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .vehicle-option:hover .vehicle-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .vehicle-option.active .vehicle-icon {
+            animation: vehicleIconBounce 1s ease infinite;
+        }
+
+        @keyframes vehicleIconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .vehicle-name {
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .vehicle-price {
+            color: var(--success-green);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+        }
+
+        .vehicle-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Book Now Button */
+        .book-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--success-green), var(--teal-accent));
+            border: 2px solid transparent;
+            color: white;
+            padding: 1.375rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .book-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .book-btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .book-btn:hover:not(:disabled) {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 18px 35px rgba(34, 197, 94, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .book-btn:active:not(:disabled) {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .book-btn:disabled {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        .book-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .book-btn:hover:not(:disabled) i {
+            transform: scale(1.2) rotate(-10deg);
+            animation: taxiBounce 0.6s ease infinite;
+        }
+
+        @keyframes taxiBounce {
+            0%, 100% { transform: translateY(0) rotate(-10deg) scale(1.2); }
+            50% { transform: translateY(-4px) rotate(-10deg) scale(1.2); }
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.625rem;
+            text-align: center;
+            color: var(--teal-accent);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.875rem 1.25rem;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 0.875rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(20, 184, 166, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .contact-link:hover::before {
+            left: 100%;
+        }
+
+        .contact-link:hover {
+            color: var(--gold-accent);
+            border-color: var(--teal-accent);
+            background: rgba(20, 184, 166, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.3);
+        }
+
+        .contact-link i {
+            font-size: 1.125rem;
+            transition: all 0.4s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .contact-link:hover i {
+            transform: rotate(15deg) scale(1.15);
+            animation: headsetRing 1s ease infinite;
+        }
+
+        @keyframes headsetRing {
+            0%, 100% { transform: rotate(15deg) scale(1.15); }
+            25% { transform: rotate(20deg) scale(1.2); }
+            75% { transform: rotate(10deg) scale(1.1); }
+        }
+
+        /* Google Places Autocomplete Styling */
+        .pac-container {
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            backdrop-filter: blur(10px);
+            margin-top: 0.25rem;
+        }
+
+        .pac-item {
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+        }
+
+        .pac-item:hover {
+            background-color: rgba(251, 191, 36, 0.2);
+        }
+
+        .pac-item-selected {
+            background-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .pac-matched {
+            color: var(--gold-accent);
+            font-weight: 600;
+        }
+
+        /* Gemini AI Chat Assistant Styles */
+        .gemini-chat-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+        }
+
+        .gemini-chat-toggle {
+            width: 4.5rem;
+            height: 4.5rem;
+            background: linear-gradient(135deg, #4285f4, #9333ea, #06b6d4);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(66, 133, 244, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .gemini-chat-toggle::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: geminiShine 3s ease-in-out infinite;
+        }
+
+        @keyframes geminiShine {
+            0%, 100% { transform: rotate(0deg) translate(-50%, -50%); opacity: 0; }
+            50% { transform: rotate(180deg) translate(-50%, -50%); opacity: 0.9; }
+        }
+
+        .gemini-chat-toggle:hover {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 15px 50px rgba(66, 133, 244, 0.6);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .gemini-chat-toggle.pulsing {
+            animation: geminiPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes geminiPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 10px 40px rgba(66, 133, 244, 0.5); 
+            }
+            50% { 
+                transform: scale(1.08); 
+                box-shadow: 0 15px 50px rgba(66, 133, 244, 0.7); 
+            }
+        }
+
+        .gemini-icon {
+            font-size: 2rem;
+            color: white;
+            z-index: 1;
+            position: relative;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .gemini-chat-toggle:hover .gemini-icon {
+            transform: rotate(360deg) scale(1.2);
+        }
+
+        .gemini-chat-toggle:active {
+            transform: scale(1) rotate(0deg);
+        }
+
+        .gemini-tooltip {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            margin-bottom: 0.5rem;
+        }
+
+        .gemini-chat-toggle:hover .gemini-tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gemini-chat-window {
+            position: absolute;
+            bottom: 5rem;
+            right: 0;
+            width: 380px;
+            height: 500px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transform: scale(0) translateY(50px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .gemini-chat-window.open {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .gemini-chat-header {
+            background: linear-gradient(135deg, #4285f4, #9333ea);
+            padding: 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .gemini-chat-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .gemini-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .gemini-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .gemini-chat-messages {
+            height: 360px;
+            overflow-y: auto;
+            padding: 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .gemini-chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .gemini-chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .gemini-chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .gemini-message {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gemini-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .gemini-message-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.875rem;
+        }
+
+        .gemini-message.user .gemini-message-avatar {
+            background: var(--gold-accent);
+            color: var(--primary-dark);
+        }
+
+        .gemini-message.assistant .gemini-message-avatar {
+            background: linear-gradient(135deg, #4285f4, #9333ea);
+            color: white;
+        }
+
+        .gemini-message-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            max-width: 80%;
+            color: white;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .gemini-message.user .gemini-message-content {
+            background: linear-gradient(135deg, var(--gold-accent), var(--teal-accent));
+            color: var(--primary-dark);
+            border-radius: 1rem 1rem 0.25rem 1rem;
+        }
+
+        .gemini-message.assistant .gemini-message-content {
+            border-radius: 1rem 1rem 1rem 0.25rem;
+        }
+
+        .gemini-chat-input-container {
+            padding: 1rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .gemini-chat-input {
+            flex: 1;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: white;
+            outline: none;
+            resize: none;
+            max-height: 4rem;
+            font-family: inherit;
+        }
+
+        .gemini-chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .gemini-chat-input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        .gemini-send-btn {
+            background: linear-gradient(135deg, #4285f4, #9333ea);
+            border: none;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .gemini-send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+
+        .gemini-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .gemini-typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .gemini-typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .gemini-typing-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #4285f4;
+            border-radius: 50%;
+            animation: typingDot 1.4s ease-in-out infinite;
+        }
+
+        .gemini-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .gemini-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: scale(0.8); opacity: 0.5; }
+            30% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* Quick Action Buttons */
+        .quick-action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .quick-action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .booking-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60% 1fr;
+            }
+
+            .booking-panel {
+                max-height: 40vh;
+            }
+
+            .feature-nav-icons {
+                gap: 0.375rem;
+            }
+
+            .feature-icon-link {
+                padding: 0.5rem 0.625rem;
+                min-width: 60px;
+            }
+
+            .feature-icon-link i {
+                font-size: 1.125rem;
+            }
+
+            .feature-label {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+                height: calc(100vh - 80px);
+            }
+
+            .header-content {
+                padding: 0 1rem;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+
+            .logo-text {
+                font-size: 1.25rem;
+            }
+
+            .feature-nav-icons {
+                order: 3;
+                width: 100%;
+                justify-content: space-around;
+                gap: 0.25rem;
+            }
+
+            .feature-icon-link {
+                padding: 0.5rem 0.5rem;
+                min-width: 50px;
+            }
+
+            .feature-icon-link i {
+                font-size: 1rem;
+            }
+
+            .feature-label {
+                font-size: 0.6rem;
+            }
+
+            .user-section {
+                gap: 0.5rem;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .booking-layout {
+                grid-template-rows: 50% 1fr;
+                gap: 1rem;
+            }
+
+            .booking-panel {
+                padding: 1.5rem;
+            }
+
+            .vehicle-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .map-control-btn {
+                width: 3rem;
+                height: 3rem;
+            }
+
+            .map-control-btn i {
+                font-size: 1.125rem;
+            }
+
+            /* Mobile Gemini Chat Adjustments */
+            .gemini-chat-container {
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .gemini-chat-toggle {
+                width: 4rem;
+                height: 4rem;
+            }
+
+            .gemini-icon {
+                font-size: 1.75rem;
+            }
+
+            .gemini-chat-window {
+                width: calc(100vw - 2rem);
+                height: 70vh;
+                bottom: 5rem;
+                right: -0.75rem;
+                border-radius: 1rem 1rem 0 0;
+            }
+
+            .gemini-chat-window.open {
+                bottom: 5rem;
+            }
+
+            .gemini-chat-messages {
+                height: calc(70vh - 140px);
+            }
+
+            .gemini-tooltip {
+                right: -2rem;
+            }
+        }
+
+        /* Driver Assignment Modal */
+        .driver-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+
+        .driver-modal.show {
+            display: flex;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .driver-card {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .driver-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .driver-avatar {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            border: 3px solid var(--gold-accent);
+            margin: 0 auto 1rem;
+        }
+
+        .driver-name {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .driver-rating {
+            color: var(--gold-accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .driver-vehicle {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .trip-summary {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .summary-item-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-item-value {
+            color: white;
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header Navigation -->
+    <header class="luxury-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">🚖</div>
+                <div class="logo-text">CabEase</div>
+            </div>
+            
+            <!-- Feature Navigation Icons -->
+            <div class="feature-nav-icons">
+                <a href="/booking-dashboard" class="feature-icon-link active" title="Book Ride">
+                    <i class="fas fa-taxi"></i>
+                    <span class="feature-label">Book</span>
+                </a>
+                <a href="/fare-calculator" class="feature-icon-link" title="Fare Calculator">
+                    <i class="fas fa-calculator"></i>
+                    <span class="feature-label">Fare</span>
+                </a>
+                <a href="/schedule-ride" class="feature-icon-link" title="Schedule Ride">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span class="feature-label">Schedule</span>
+                </a>
+                <a href="/analytics-dashboard" class="feature-icon-link" title="Analytics">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="feature-label">Analytics</span>
+                </a>
+                <a href="/wallet" class="feature-icon-link" title="Wallet">
+                    <i class="fas fa-wallet"></i>
+                    <span class="feature-label">Wallet</span>
+                </a>
+                <a href="/ride-tracking" class="feature-icon-link" title="Live Tracking" style="position: relative;">
+                    <i class="fas fa-location-dot" style="color: #22c55e;"></i>
+                    <span class="feature-label" style="color: #22c55e;">Track</span>
+                    <span style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                </a>
+                <a href="/driver-simulator" class="feature-icon-link" title="Driver Simulator">
+                    <i class="fas fa-car-side" style="color: #f59e0b;"></i>
+                    <span class="feature-label" style="color: #f59e0b;">Simulate</span>
+                </a>
+                <a href="/profile" class="feature-icon-link" title="Profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="feature-label">Profile</span>
+                </a>
+            </div>
+            
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" th:text="${user.name}">Test User</div>
+                    <div class="user-email" th:text="${user.email}">test@cabease.com</div>
+                </div>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="User Avatar" class="user-avatar">
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="booking-layout">
+            <!-- Map Section -->
+            <div class="map-section">
+                <div id="map"></div>
+                <div class="map-overlay">
+                    <button class="map-control-btn" onclick="getCurrentLocation()" title="Get Current Location">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button class="map-control-btn" onclick="clearMap()" title="Clear Route">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Booking Panel -->
+            <div class="booking-panel">
+                <h2 class="panel-title">Book Your Ride</h2>
+
+                <!-- Location Inputs -->
+                <div class="location-section">
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <div class="location-dot pickup-dot"></div>
+                            <input 
+                                type="text" 
+                                id="pickup-input" 
+                                class="location-input"
+                                placeholder="Enter pickup location"
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                            <button class="current-location-btn" onclick="setCurrentAsPickup()" title="Use Current Location">
+                                <i class="fas fa-location-arrow"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="swap-container">
+                        <button class="swap-btn" onclick="swapLocations()" title="Swap Locations">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <div class="location-dot drop-dot"></div>
+                            <input 
+                                type="text" 
+                                id="drop-input" 
+                                class="location-input"
+                                placeholder="Enter destination"
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                        </div>
+                    </div>
+
+                    <button id="route-btn" class="route-btn" onclick="showRoute()">
+                        <div class="loading-spinner"></div>
+                        <i class="fas fa-route"></i> Show Route & Calculate Fare
+                    </button>
+                </div>
+
+                <!-- Route Information -->
+                <div id="route-info" class="route-info">
+                    <div class="route-details">
+                        <div class="route-stat">
+                            <div class="route-stat-label">Distance</div>
+                            <div class="route-stat-value" id="route-distance">--</div>
+                        </div>
+                        <div class="route-stat">
+                            <div class="route-stat-label">Duration</div>
+                            <div class="route-stat-value" id="route-duration">--</div>
+                        </div>
+                    </div>
+                    <div class="fare-section">
+                        <div class="fare-label">Estimated Fare</div>
+                        <div class="fare-amount">₹<span id="estimated-fare">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Selection -->
+                <div class="vehicle-section">
+                    <div class="section-title">Choose Vehicle</div>
+                    <div class="vehicle-grid">
+                        <div class="vehicle-option active" data-type="mini" onclick="selectVehicle('mini')">
+                            <div class="vehicle-icon">🚗</div>
+                            <div class="vehicle-name">Mini</div>
+                            <div class="vehicle-price">₹8/km</div>
+                            <div class="vehicle-desc">4 seater • Economy</div>
+                        </div>
+                        <div class="vehicle-option" data-type="sedan" onclick="selectVehicle('sedan')">
+                            <div class="vehicle-icon">🚙</div>
+                            <div class="vehicle-name">Sedan</div>
+                            <div class="vehicle-price">₹12/km</div>
+                            <div class="vehicle-desc">4 seater • Comfort</div>
+                        </div>
+                        <div class="vehicle-option" data-type="suv" onclick="selectVehicle('suv')">
+                            <div class="vehicle-icon">🚐</div>
+                            <div class="vehicle-name">SUV</div>
+                            <div class="vehicle-price">₹18/km</div>
+                            <div class="vehicle-desc">6 seater • Premium</div>
+                        </div>
+                        <div class="vehicle-option" data-type="bike" onclick="selectVehicle('bike')">
+                            <div class="vehicle-icon">🏍️</div>
+                            <div class="vehicle-name">Bike</div>
+                            <div class="vehicle-price">₹5/km</div>
+                            <div class="vehicle-desc">Fast • Economical</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book Now Button -->
+                <button id="book-btn" class="book-btn" onclick="bookNow()" disabled>
+                    <i class="fas fa-taxi"></i> Book Now
+                </button>
+
+                <!-- Contact Link -->
+                <a href="/contact" class="contact-link">
+                    <i class="fas fa-headset"></i> Need Help? Contact Us
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Driver Assignment Modal -->
+    <div id="driver-modal" class="driver-modal">
+        <div class="driver-card">
+            <div class="driver-header">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=driver1" alt="Driver" class="driver-avatar">
+                <div class="driver-name">Karthik Kumar</div>
+                <div class="driver-rating">⭐⭐⭐⭐⭐ 4.9 (234 rides)</div>
+                <div class="driver-vehicle">Maruti Swift • TN 09 CB 1234</div>
+            </div>
+            
+            <div class="trip-summary">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-item-label">Distance</div>
+                        <div class="summary-item-value" id="modal-distance">8.5 km</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">ETA</div>
+                        <div class="summary-item-value">3 min</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-item-label">Fare</div>
+                        <div class="summary-item-value" id="modal-fare">₹120</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn cancel-btn" onclick="cancelBooking()">Cancel</button>
+                <button class="modal-btn confirm-btn" onclick="confirmBooking()">Confirm Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gemini AI Chat Assistant -->
+    <div class="gemini-chat-container">
+        <!-- Chat Toggle Button -->
+        <button id="gemini-chat-toggle" class="gemini-chat-toggle pulsing" onclick="toggleGeminiChat()">
+            <div class="gemini-tooltip">Chat with Gemini AI</div>
+            <div class="gemini-icon">✨</div>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="gemini-chat-window" class="gemini-chat-window">
+            <!-- Chat Header -->
+            <div class="gemini-chat-header">
+                <div class="gemini-chat-title">
+                    <span>💬</span>
+                    <span>Gemini Assistant</span>
+                </div>
+                <button class="gemini-close-btn" onclick="toggleGeminiChat()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="gemini-chat-messages" class="gemini-chat-messages">
+                <!-- Welcome Message -->
+                <div class="gemini-message assistant">
+                    <div class="gemini-message-avatar">🤖</div>
+                    <div class="gemini-message-content">
+                        Hello! I'm your Gemini AI assistant. I can help you with booking rides, checking fares, or answering any questions about CabEase. How can I help you today?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="gemini-chat-input-container">
+                <textarea 
+                    id="gemini-chat-input" 
+                    class="gemini-chat-input" 
+                    placeholder="Type your message..."
+                    rows="1"
+                    onkeypress="handleChatKeypress(event)"
+                ></textarea>
+                <button id="gemini-send-btn" class="gemini-send-btn" onclick="sendGeminiMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vehicle pricing per km
+        const vehiclePricing = {
+            mini: 8,
+            sedan: 12,
+            suv: 18,
+            bike: 5
+        };
+
+        // Google Maps error handling
+        window.gm_authFailure = function() {
+            console.error('Google Maps API key authentication failed');
+            const mapElement = document.getElementById('map');
+            if (mapElement) {
+                mapElement.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #ef4444; text-align: center; padding: 2rem;"><div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div><div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Map Loading Failed</div><div style="color: #6b7280;">Please check your internet connection and refresh the page</div></div>';
+            }
+        };
+
+        // Initialize Map (called by initMap callback after Google Maps API loads)
+        function initializeMap() {
+            console.log('🗺️ Initializing Google Maps with DOM ready...');
+            
+            // Ensure Google Maps API is loaded
+            if (typeof google === 'undefined' || !google.maps) {
+                console.error('Google Maps API not loaded yet, retrying...');
+                setTimeout(initializeMap, 500);
+                return;
+            }
+            
+            // Ensure map element exists
+            const mapElement = document.getElementById('map');
+            if (!mapElement) {
+                console.error('Map element not found, retrying...');
+                setTimeout(initializeMap, 500);
+                return;
+            }
+
+            // Chennai coordinates
+            const chennai = { lat: 13.0827, lng: 80.2707 };
+
+            // Map options with luxury styling
+            const mapOptions = {
+                zoom: 12,
+                center: chennai,
+                restriction: {
+                    latLngBounds: {
+                        north: 13.2827,
+                        south: 12.8827,
+                        west: 80.0707,
+                        east: 80.4707
+                    },
+                    strictBounds: false
+                },
+                styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#1a1a2e"}]
+                    },
+                    {
+                        "featureType": "all",
+                        "elementType": "labels.text.fill",
+                        "stylers": [{"color": "#ffffff"}]
+                    },
+                    {
+                        "featureType": "road",
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#16213e"}]
+                    },
+                    {
+                        "featureType": "road.highway",
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#0f3460"}]
+                    },
+                    {
+                        "featureType": "water",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#0f172a"}]
+                    },
+                    {
+                        "featureType": "poi",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#16213e"}]
+                    },
+                    {
+                        "featureType": "administrative",
+                        "elementType": "geometry.stroke",
+                        "stylers": [{"color": "#fbbf24"}]
+                    }
+                ],
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
+                }
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            directionsService = new google.maps.DirectionsService();
+            
+            // Enhanced directions renderer
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#fbbf24',
+                    strokeWeight: 4,
+                    strokeOpacity: 0.8
+                }
+            });
+            directionsRenderer.setMap(map);
+
+            // Initialize autocomplete
+            initAutocomplete();
+            
+            console.log('Google Maps initialized successfully');
+        }
+
+        // Initialize Google Places Autocomplete
+        function initAutocomplete() {
+            try {
+                console.log('Initializing autocomplete...');
+                
+                // Ensure Google Maps Places API is loaded
+                if (!google || !google.maps || !google.maps.places) {
+                    console.error('Google Places API not loaded, retrying...');
+                    setTimeout(initAutocomplete, 500);
+                    return;
+                }
+                
+                const autocompleteOptions = {
+                    types: ['establishment', 'geocode'],
+                    componentRestrictions: { country: 'IN' },
+                    fields: ['place_id', 'geometry', 'name', 'formatted_address', 'address_components']
+                };
+
+                // Initialize pickup autocomplete
+                const pickupInput = document.getElementById('pickup-input');
+                if (pickupInput && google.maps.places) {
+                    pickupAutocomplete = new google.maps.places.Autocomplete(
+                        pickupInput,
+                        autocompleteOptions
+                    );
+
+                    // Place change listener for pickup
+                    pickupAutocomplete.addListener('place_changed', function() {
+                        const place = pickupAutocomplete.getPlace();
+                        console.log('Pickup place selected:', place);
+                        
+                        if (place.geometry && place.geometry.location) {
+                            console.log('Valid pickup location:', place.name || place.formatted_address);
+                            addPickupMarker(place.geometry.location);
+                            
+                            // Update input value with formatted address
+                            pickupInput.value = place.formatted_address || place.name;
+                            
+                            checkAndCalculateRoute();
+                        } else {
+                            console.log('Invalid pickup place selected');
+                        }
+                    });
+                    
+                    console.log('Pickup autocomplete initialized');
+                }
+
+                // Initialize drop autocomplete
+                const dropInput = document.getElementById('drop-input');
+                if (dropInput && google.maps.places) {
+                    dropAutocomplete = new google.maps.places.Autocomplete(
+                        dropInput,
+                        autocompleteOptions
+                    );
+
+                    // Place change listener for drop
+                    dropAutocomplete.addListener('place_changed', function() {
+                        const place = dropAutocomplete.getPlace();
+                        console.log('Drop place selected:', place);
+                        
+                        if (place.geometry && place.geometry.location) {
+                            console.log('Valid drop location:', place.name || place.formatted_address);
+                            addDropMarker(place.geometry.location);
+                            
+                            // Update input value with formatted address
+                            dropInput.value = place.formatted_address || place.name;
+                            
+                            checkAndCalculateRoute();
+                        } else {
+                            console.log('Invalid drop place selected');
+                        }
+                    });
+                    
+                    console.log('Drop autocomplete initialized');
+                }
+                
+                // Add manual input support as fallback
+                addManualInputSupport();
+                
+            } catch (error) {
+                console.error('Error initializing autocomplete:', error);
+                // Enable manual input if autocomplete fails
+                addManualInputSupport();
+            }
+        }
+
+        // Add support for manual input when autocomplete fails
+        function addManualInputSupport() {
+            console.log('Adding manual input support...');
+            
+            const pickupInput = document.getElementById('pickup-input');
+            const dropInput = document.getElementById('drop-input');
+            
+            if (pickupInput) {
+                pickupInput.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        console.log('Manual pickup entered:', this.value);
+                        geocodeAddress(this.value, 'pickup');
+                    }
+                });
+                
+                pickupInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && this.value.trim()) {
+                        console.log('Manual pickup entered via Enter:', this.value);
+                        geocodeAddress(this.value, 'pickup');
+                    }
+                });
+            }
+            
+            if (dropInput) {
+                dropInput.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        console.log('Manual drop entered:', this.value);
+                        geocodeAddress(this.value, 'drop');
+                    }
+                });
+                
+                dropInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && this.value.trim()) {
+                        console.log('Manual drop entered via Enter:', this.value);
+                        geocodeAddress(this.value, 'drop');
+                    }
+                });
+            }
+        }
+
+        // Geocode manually entered addresses
+        function geocodeAddress(address, type) {
+            if (!google.maps || !google.maps.Geocoder) {
+                console.log('Geocoding not available, proceeding with text-based route');
+                checkAndCalculateRoute();
+                return;
+            }
+            
+            const geocoder = new google.maps.Geocoder();
+            
+            geocoder.geocode({
+                address: address,
+                componentRestrictions: { country: 'IN' }
+            }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    const place = results[0];
+                    const location = place.geometry.location;
+                    
+                    console.log(`Geocoded ${type} location:`, place.formatted_address);
+                    
+                    if (type === 'pickup') {
+                        addPickupMarker(location);
+                    } else {
+                        addDropMarker(location);
+                    }
+                    
+                    checkAndCalculateRoute();
+                } else {
+                    console.log(`Geocoding failed for ${type}: ${status}`);
+                    // Still try to calculate route with text addresses
+                    checkAndCalculateRoute();
+                }
+            });
+        }
+
+        // Add pickup marker
+        function addPickupMarker(location) {
+            if (pickupMarker) {
+                pickupMarker.setMap(null);
+            }
+            
+            pickupMarker = new google.maps.Marker({
+                position: location,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#22c55e',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                },
+                title: 'Pickup Location'
+            });
+        }
+
+        // Add drop marker
+        function addDropMarker(location) {
+            if (dropMarker) {
+                dropMarker.setMap(null);
+            }
+            
+            dropMarker = new google.maps.Marker({
+                position: location,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#ef4444',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                },
+                title: 'Drop Location'
+            });
+        }
+
+        // Check and automatically calculate route if both locations are set
+        function checkAndCalculateRoute() {
+            setTimeout(() => {
+                const pickup = document.getElementById('pickup-input').value.trim();
+                const drop = document.getElementById('drop-input').value.trim();
+                
+                if (pickup && drop && pickup !== drop) {
+                    console.log('Auto-calculating route...');
+                    showRoute();
+                }
+            }, 500);
+        }
+
+        // Show route between pickup and drop locations
+        function showRoute() {
+            const pickupValue = document.getElementById('pickup-input').value.trim();
+            const dropValue = document.getElementById('drop-input').value.trim();
+            const routeBtn = document.getElementById('route-btn');
+            
+            if (!pickupValue || !dropValue) {
+                alert('Please enter both pickup and drop locations');
+                return;
+            }
+            
+            if (pickupValue === dropValue) {
+                alert('Pickup and drop locations cannot be the same');
+                return;
+            }
+
+            // Show loading state
+            routeBtn.classList.add('loading');
+            routeBtn.disabled = true;
+            
+            console.log('Calculating route from:', pickupValue, 'to:', dropValue);
+            
+            // Use Google Directions API
+            const request = {
+                origin: pickupValue,
+                destination: dropValue,
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+                avoidHighways: false,
+                avoidTolls: false,
+                provideRouteAlternatives: false
+            };
+            
+            directionsService.route(request, (result, status) => {
+                // Remove loading state
+                routeBtn.classList.remove('loading');
+                routeBtn.disabled = false;
+
+                if (status === 'OK') {
+                    console.log('Route calculated successfully');
+                    directionsRenderer.setDirections(result);
+                    
+                    const route = result.routes[0];
+                    const leg = route.legs[0];
+                    
+                    currentRoute = {
+                        distance: leg.distance.value / 1000, // Convert to km
+                        duration: leg.duration.text,
+                        distanceText: leg.distance.text,
+                        pickupLat: leg.start_location.lat(),
+                        pickupLng: leg.start_location.lng(),
+                        dropLat: leg.end_location.lat(),
+                        dropLng: leg.end_location.lng()
+                    };
+                    
+                    console.log('✅ Route with coordinates:', {
+                        pickup: { lat: currentRoute.pickupLat, lng: currentRoute.pickupLng },
+                        drop: { lat: currentRoute.dropLat, lng: currentRoute.dropLng },
+                        distance: currentRoute.distance
+                    });
+                    
+                    // Update UI
+                    document.getElementById('route-distance').textContent = currentRoute.distanceText;
+                    document.getElementById('route-duration').textContent = currentRoute.duration;
+                    
+                    // Calculate and display fare
+                    calculateFare();
+                    
+                    // Show route info
+                    document.getElementById('route-info').classList.add('show');
+                    
+                    // Enable book button
+                    document.getElementById('book-btn').disabled = false;
+                    
+                    // Fit map bounds to show entire route
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.union(route.bounds);
+                    map.fitBounds(bounds);
+                    
+                    console.log('Route calculated:', currentRoute);
+                    
+                } else {
+                    console.error('Route calculation failed:', status);
+                    let errorMessage = 'Route calculation failed. ';
+                    switch (status) {
+                        case 'NOT_FOUND':
+                            errorMessage += 'One or more locations could not be found.';
+                            break;
+                        case 'ZERO_RESULTS':
+                            errorMessage += 'No route could be found between the locations.';
+                            break;
+                        case 'MAX_WAYPOINTS_EXCEEDED':
+                            errorMessage += 'Too many waypoints were provided.';
+                            break;
+                        case 'INVALID_REQUEST':
+                            errorMessage += 'Invalid route request.';
+                            break;
+                        default:
+                            errorMessage += `Error: ${status}`;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        }
+
+        // Calculate fare based on distance and vehicle type
+        function calculateFare() {
+            if (!currentRoute) return;
+
+            const baseRate = vehiclePricing[selectedVehicle];
+            const distance = currentRoute.distance;
+            const baseFare = 30; // Base booking fee
+            const distanceFare = distance * baseRate;
+            
+            // Add time-based surge pricing
+            const now = new Date();
+            const hour = now.getHours();
+            const isPeakHour = (hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 21);
+            const surgeFare = isPeakHour ? (baseFare + distanceFare) * 0.2 : 0;
+            
+            const totalFare = Math.round(baseFare + distanceFare + surgeFare);
+            
+            document.getElementById('estimated-fare').textContent = totalFare;
+            
+            // Update modal fare if visible
+            const modalFare = document.getElementById('modal-fare');
+            if (modalFare) {
+                modalFare.textContent = `₹${totalFare}`;
+            }
+
+            return totalFare;
+        }
+
+        // Select vehicle type
+        function selectVehicle(type) {
+            selectedVehicle = type;
+            
+            // Update UI
+            document.querySelectorAll('.vehicle-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // Recalculate fare
+            if (currentRoute) {
+                calculateFare();
+            }
+            
+            console.log('Selected vehicle:', type);
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setCenter(pos);
+                        map.setZoom(15);
+                        
+                        // Add current location marker
+                        if (pickupMarker) {
+                            pickupMarker.setMap(null);
+                        }
+                        addPickupMarker(pos);
+                        
+                        // Reverse geocode to get address
+                        const geocoder = new google.maps.Geocoder();
+                        geocoder.geocode({ location: pos }, (results, status) => {
+                            if (status === 'OK' && results[0]) {
+                                document.getElementById('pickup-input').value = results[0].formatted_address;
+                            }
+                        });
+                    },
+                    () => {
+                        alert('Error: The Geolocation service failed.');
+                    }
+                );
+            } else {
+                alert('Error: Your browser doesn\'t support geolocation.');
+            }
+        }
+
+        // Set current location as pickup
+        function setCurrentAsPickup() {
+            getCurrentLocation();
+        }
+
+        // Swap pickup and drop locations
+        function swapLocations() {
+            const pickupInput = document.getElementById('pickup-input');
+            const dropInput = document.getElementById('drop-input');
+            
+            const tempValue = pickupInput.value;
+            pickupInput.value = dropInput.value;
+            dropInput.value = tempValue;
+            
+            // Swap markers
+            const tempMarker = pickupMarker;
+            pickupMarker = dropMarker;
+            dropMarker = tempMarker;
+            
+            // Update marker colors
+            if (pickupMarker) {
+                pickupMarker.setIcon({
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#22c55e',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                });
+            }
+            
+            if (dropMarker) {
+                dropMarker.setIcon({
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#ef4444',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                });
+            }
+            
+            // Recalculate route if both locations exist
+            if (pickupInput.value && dropInput.value) {
+                showRoute();
+            }
+        }
+
+        // Clear map
+        function clearMap() {
+            if (directionsRenderer) {
+                directionsRenderer.setDirections({routes: []});
+            }
+            if (pickupMarker) {
+                pickupMarker.setMap(null);
+                pickupMarker = null;
+            }
+            if (dropMarker) {
+                dropMarker.setMap(null);
+                dropMarker = null;
+            }
+            
+            // Clear inputs
+            document.getElementById('pickup-input').value = '';
+            document.getElementById('drop-input').value = '';
+            
+            // Hide route info
+            document.getElementById('route-info').classList.remove('show');
+            
+            // Disable book button
+            document.getElementById('book-btn').disabled = true;
+            
+            currentRoute = null;
+            
+            // Reset map center
+            map.setCenter({ lat: 13.0827, lng: 80.2707 });
+            map.setZoom(12);
+        }
+
+        // Book now functionality
+        function bookNow() {
+            if (!currentRoute) {
+                alert('Please calculate a route first');
+                return;
+            }
+
+            // Show driver assignment modal
+            document.getElementById('modal-distance').textContent = currentRoute.distanceText;
+            document.getElementById('driver-modal').classList.add('show');
+        }
+
+        // Cancel booking
+        function cancelBooking() {
+            document.getElementById('driver-modal').classList.remove('show');
+        }
+
+        // Confirm booking
+        function confirmBooking() {
+            // Build booking payload to send to backend API
+            if (!currentRoute) {
+                alert('Please calculate a route first');
+                return;
+            }
+
+            // Map frontend vehicle keys to server-side VehicleType enum names
+            const vehicleTypeMap = {
+                'mini': 'MICRO',
+                'sedan': 'CAB',
+                'suv': 'XL',
+                'bike': 'BIKE'
+            };
+
+            const payload = {
+                pickupLocation: document.getElementById('pickup-input').value,
+                dropLocation: document.getElementById('drop-input').value,
+                pickupLatitude: currentRoute.pickupLat || null,
+                pickupLongitude: currentRoute.pickupLng || null,
+                dropLatitude: currentRoute.dropLat || null,
+                dropLongitude: currentRoute.dropLng || null,
+                distance: currentRoute.distance,
+                vehicleType: vehicleTypeMap[selectedVehicle] || 'MICRO',
+                femaleDriverPreferred: false,
+                paymentMethod: 'CASH',
+                specialInstructions: '',
+                passengerCount: 1
+            };
+
+            console.log('Sending booking to server:', payload);
+
+            // Send booking to API which will invoke BookingService and EmailService
+            fetch('/api/v1/booking/create', {
+                method: 'POST',
+                // include cookies even in broader contexts (more robust than same-origin)
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async (resp) => {
+                if (resp.ok) {
+                    // success
+                    return resp.json().catch(() => null);
+                }
+
+                // Attempt to read JSON error body, otherwise text
+                let body = null;
+                try {
+                    body = await resp.json();
+                } catch (e) {
+                    try { body = await resp.text(); } catch (e2) { body = null; }
+                }
+
+                const errMsg = (body && body.error) ? body.error : (typeof body === 'string' ? body : resp.statusText || 'Unknown error');
+                const fullMsg = `HTTP ${resp.status} ${resp.statusText} - ${errMsg}`;
+                throw new Error(fullMsg);
+            })
+            .then((data) => {
+                console.log('Booking created:', data);
+                
+                // 🎯 AUTO-REDIRECT TO TRACKING (like Rapido!)
+                if (data.trackingUrl) {
+                    // Show brief notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: linear-gradient(135deg, #22c55e, #14b8a6);
+                        color: white;
+                        padding: 2rem 3rem;
+                        border-radius: 1rem;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        z-index: 10000;
+                        box-shadow: 0 10px 40px rgba(34, 197, 94, 0.4);
+                        text-align: center;
+                    `;
+                    notification.innerHTML = '🎉 Booking Confirmed!<br>✉️ Email sent<br>🚗 Redirecting to live tracking...';
+                    document.body.appendChild(notification);
+                    
+                    // Close modal
+                    document.getElementById('driver-modal').classList.remove('show');
+                    
+                    // IMMEDIATE redirect to tracking page (like Rapido!)
+                    setTimeout(() => {
+                        window.location.href = data.trackingUrl;
+                    }, 1500);
+                } else {
+                    alert('🎉 Booking Confirmed! A confirmation email has been sent with your ride details and a cancellation link.');
+                    
+                    // Close modal and reset form
+                    document.getElementById('driver-modal').classList.remove('show');
+                    clearMap();
+                }
+            })
+            .catch((err) => {
+                console.error('Booking creation failed:', err);
+                
+                // Close modal first
+                document.getElementById('driver-modal').classList.remove('show');
+                
+                // If unauthorized, store pending booking and redirect to login
+                if (err.message && err.message.indexOf('401') !== -1) {
+                    try {
+                        sessionStorage.setItem('pendingBooking', JSON.stringify(payload));
+                    } catch (e) {
+                        console.warn('Could not store pending booking', e);
+                    }
+
+                    alert('You need to sign in. You will be redirected to the login page; after signing in your booking will be retried automatically.');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Show generic error alert
+                alert('⚠️ Booking Failed\n\n' + (err.message || 'Failed to create booking. Please try again.'));
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Booking dashboard loaded');
+            
+            // Enable all interactive elements
+            document.getElementById('pickup-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAndCalculateRoute();
+                }
+            });
+            
+            document.getElementById('drop-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAndCalculateRoute();
+                }
+            });
+        });
+
+        // Error handling for Google Maps
+        window.gm_authFailure = function() {
+            console.error('Google Maps authentication failed');
+            alert('Google Maps failed to load. Please check your API key configuration.');
+        };
+
+        // Gemini AI Chat Assistant Functions
+        let geminiChatOpen = false;
+        let chatHistory = [];
+        let isTyping = false;
+        let conversationContext = {};
+
+        // Audio for chat notifications
+        const createChatSound = () => {
+            // Create a subtle notification sound
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        };
+
+        // Toggle Gemini Chat Window
+        function toggleGeminiChat() {
+            const chatWindow = document.getElementById('gemini-chat-window');
+            const chatToggle = document.getElementById('gemini-chat-toggle');
+            
+            geminiChatOpen = !geminiChatOpen;
+            
+            if (geminiChatOpen) {
+                chatWindow.classList.add('open');
+                chatToggle.classList.remove('pulsing');
+                document.getElementById('gemini-chat-input').focus();
+                
+                // Add greeting message if this is the first time opening
+                if (chatHistory.length <= 1) {
+                    setTimeout(() => {
+                        addGreetingMessage();
+                    }, 500);
+                }
+            } else {
+                chatWindow.classList.remove('open');
+                chatToggle.classList.add('pulsing');
+            }
+        }
+
+        // Add personalized greeting message
+        function addGreetingMessage() {
+            const userName = document.querySelector('.user-name')?.textContent || 'there';
+            const greeting = `Hello ${userName}! 👋 I'm your CabEase AI assistant. I can help you book rides, check fares, or answer any questions. How can I assist you today?`;
+            addChatMessage(greeting, 'assistant');
+            
+            // Add quick action buttons
+            setTimeout(() => {
+                addQuickActions();
+            }, 1000);
+        }
+
+        // Add quick action buttons
+        function addQuickActions() {
+            const messagesContainer = document.getElementById('gemini-chat-messages');
+            const quickActionsDiv = document.createElement('div');
+            quickActionsDiv.className = 'gemini-message assistant';
+            quickActionsDiv.innerHTML = `
+                <div class="gemini-message-avatar">🤖</div>
+                <div class="gemini-message-content">
+                    <div style="margin-bottom: 0.75rem;">Quick actions:</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <button onclick="handleQuickAction('Check Fare')" class="quick-action-btn">💰 Check Fare</button>
+                        <button onclick="handleQuickAction('Book Ride')" class="quick-action-btn">🚗 Book Ride</button>
+                        <button onclick="handleQuickAction('Vehicle Types')" class="quick-action-btn">🚙 Vehicle Types</button>
+                        <button onclick="handleQuickAction('Contact Support')" class="quick-action-btn">📞 Support</button>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(quickActionsDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Handle quick action clicks
+        function handleQuickAction(action) {
+            addChatMessage(action, 'user');
+            processGeminiMessage(action);
+        }
+
+        // Handle Enter key in chat input
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendGeminiMessage();
+            }
+        }
+
+        // Send message to Gemini
+        async function sendGeminiMessage() {
+            const chatInput = document.getElementById('gemini-chat-input');
+            const message = chatInput.value.trim();
+            
+            if (!message || isTyping) return;
+            
+            // Add user message to chat
+            addChatMessage(message, 'user');
+            chatInput.value = '';
+            
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Process message with Gemini
+            await processGeminiMessage(message);
+        }
+
+        // Add message to chat with enhanced animations
+        function addChatMessage(message, sender) {
+            const messagesContainer = document.getElementById('gemini-chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `gemini-message ${sender}`;
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(20px)';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'gemini-message-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🤖';
+            
+            const content = document.createElement('div');
+            content.className = 'gemini-message-content';
+            
+            // Support markdown-like formatting and emojis
+            content.innerHTML = formatMessage(message);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Animate message in
+            setTimeout(() => {
+                messageDiv.style.transition = 'all 0.3s ease-out';
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
+            }, 50);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Store in history
+            chatHistory.push({ message, sender, timestamp: new Date() });
+            
+            // Play sound for assistant messages
+            if (sender === 'assistant') {
+                try {
+                    createChatSound();
+                } catch (e) {
+                    console.log('Audio not supported');
+                }
+            }
+        }
+
+        // Format message with basic markdown support
+        function formatMessage(message) {
+            return message
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: rgba(255,255,255,0.1); padding: 0.2rem 0.4rem; border-radius: 0.25rem;">$1</code>')
+                .replace(/\n/g, '<br>')
+                .split('\n').map(line => {
+                    if (line.startsWith('•') || line.startsWith('-')) {
+                        return `<div style="margin: 0.25rem 0;">${line}</div>`;
+                    }
+                    return line;
+                }).join('');
+        }
+
+        // Show enhanced typing indicator
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('gemini-chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'gemini-typing-indicator';
+            typingDiv.style.opacity = '0';
+            
+            typingDiv.innerHTML = `
+                <div class="gemini-message-avatar">🤖</div>
+                <div class="gemini-message-content">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Gemini is thinking</span>
+                        <div class="gemini-typing-dots">
+                            <div class="gemini-typing-dot"></div>
+                            <div class="gemini-typing-dot"></div>
+                            <div class="gemini-typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            
+            // Animate in
+            setTimeout(() => {
+                typingDiv.style.transition = 'opacity 0.3s ease';
+                typingDiv.style.opacity = '1';
+            }, 50);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            isTyping = true;
+        }
+
+        // Remove typing indicator
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.style.opacity = '0';
+                setTimeout(() => {
+                    typingIndicator.remove();
+                }, 300);
+            }
+            isTyping = false;
+        }
+
+        // Process message with enhanced Gemini AI
+        async function processGeminiMessage(userMessage) {
+            try {
+                // Update conversation context
+                updateConversationContext();
+                
+                // Simulate realistic API delay
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1500));
+                
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: userMessage,
+                        context: conversationContext
+                    })
+                });
+                
+                let aiResponse;
+                if (response.ok) {
+                    const data = await response.json();
+                    aiResponse = data.response;
+                } else {
+                    console.error('API Error:', response.status);
+                    aiResponse = getFallbackResponse(userMessage);
+                }
+                
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add Gemini response
+                addChatMessage(aiResponse, 'assistant');
+                
+                // Handle booking intents
+                const bookingIntent = detectBookingIntent(userMessage);
+                if (bookingIntent) {
+                    setTimeout(() => {
+                        handleBookingIntent(bookingIntent);
+                    }, 1000);
+                }
+                
+                // Add confirmation buttons for booking actions
+                if (userMessage.toLowerCase().includes('book') && conversationContext.pickupLocation && conversationContext.dropLocation) {
+                    setTimeout(() => {
+                        addConfirmationButtons();
+                    }, 1500);
+                }
+                
+            } catch (error) {
+                console.error('Gemini API Error:', error);
+                removeTypingIndicator();
+                addChatMessage('Sorry, I encountered an error. Please try again later. 😔', 'assistant');
+            }
+        }
+
+        // Update conversation context
+        function updateConversationContext() {
+            conversationContext = {
+                pickupLocation: document.getElementById('pickup-input')?.value || '',
+                dropLocation: document.getElementById('drop-input')?.value || '',
+                selectedVehicle: selectedVehicle || 'mini',
+                currentRoute: currentRoute,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // Enhanced booking intent detection
+        function detectBookingIntent(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Booking keywords
+            const bookingKeywords = ['book', 'ride', 'cab', 'taxi', 'go to', 'take me to', 'travel to', 'ride to'];
+            const hasBookingKeyword = bookingKeywords.some(keyword => lowerMessage.includes(keyword));
+            
+            if (!hasBookingKeyword) return null;
+            
+            // Location extraction patterns
+            const locationPatterns = [
+                /(?:from|pickup)\s+([^to]+?)(?:\s+to\s+([^.!?]+))?/i,
+                /(?:to|drop|destination)\s+([^.!?]+)/i,
+                /(?:book|ride|go|take me)\s+to\s+([^.!?]+)/i,
+                /(?:travel|heading)\s+to\s+([^.!?]+)/i
+            ];
+            
+            let pickup = null;
+            let drop = null;
+            
+            for (const pattern of locationPatterns) {
+                const match = message.match(pattern);
+                if (match) {
+                    if (match[2]) {
+                        pickup = match[1].trim();
+                        drop = match[2].trim();
+                    } else {
+                        drop = match[1].trim();
+                    }
+                    break;
+                }
+            }
+            
+            return { pickup, drop };
+        }
+
+        // Enhanced booking intent handler
+        function handleBookingIntent(intent) {
+            let updated = false;
+            
+            if (intent.pickup && intent.pickup.length > 2) {
+                document.getElementById('pickup-input').value = intent.pickup;
+                updated = true;
+            }
+            
+            if (intent.drop && intent.drop.length > 2) {
+                document.getElementById('drop-input').value = intent.drop;
+                updated = true;
+            }
+            
+            // If both locations are provided, calculate route
+            if (updated && intent.pickup && intent.drop) {
+                setTimeout(() => {
+                    showRoute();
+                    addChatMessage(`Great! I've set your pickup at **${intent.pickup}** and destination at **${intent.drop}**. Calculating route now... 🗺️`, 'assistant');
+                }, 500);
+            } else if (updated) {
+                const location = intent.pickup || intent.drop;
+                const type = intent.pickup ? 'pickup' : 'destination';
+                addChatMessage(`Perfect! I've set your ${type} location to **${location}**. ${type === 'pickup' ? 'Where would you like to go?' : 'Where should I pick you up from?'} 📍`, 'assistant');
+            }
+        }
+
+        // Add confirmation buttons for booking
+        function addConfirmationButtons() {
+            const messagesContainer = document.getElementById('gemini-chat-messages');
+            const confirmDiv = document.createElement('div');
+            confirmDiv.className = 'gemini-message assistant';
+            confirmDiv.innerHTML = `
+                <div class="gemini-message-avatar">🤖</div>
+                <div class="gemini-message-content">
+                    <div style="margin-bottom: 0.75rem;">Ready to book your ride?</div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="confirmBookingFromChat()" class="quick-action-btn" style="background: #22c55e;">✅ Yes, Book Now</button>
+                        <button onclick="cancelBookingFromChat()" class="quick-action-btn" style="background: #ef4444;">❌ Not Yet</button>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(confirmDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Confirm booking from chat
+        function confirmBookingFromChat() {
+            if (currentRoute) {
+                addChatMessage('Yes, book my ride!', 'user');
+                setTimeout(() => {
+                    bookNow();
+                    addChatMessage('Excellent! Processing your booking now... 🚗✨', 'assistant');
+                }, 500);
+            } else {
+                addChatMessage('Please calculate the route first by clicking "Show Route & Calculate Fare" 😊', 'assistant');
+            }
+        }
+
+        // Cancel booking from chat
+        function cancelBookingFromChat() {
+            addChatMessage('Not yet, let me think about it.', 'user');
+            setTimeout(() => {
+                addChatMessage('No problem! Take your time. I\'m here whenever you\'re ready to book. Feel free to ask if you need any information about fares or routes! 😊', 'assistant');
+            }, 500);
+        }
+
+        // Enhanced fallback responses
+        function getFallbackResponse(userMessage) {
+            const lowerMessage = userMessage.toLowerCase();
+            
+            // Greeting responses
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                const userName = document.querySelector('.user-name')?.textContent || 'there';
+                return `Hello ${userName}! 👋 I'm your CabEase AI assistant. I can help you book rides, check fares, or answer any questions about our service. How can I help you today?`;
+            }
+            
+            // Thank you responses
+            if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
+                return "You're very welcome! 😊 I'm always happy to help. Is there anything else you'd like to know about CabEase?";
+            }
+            
+            // Booking responses with context
+            if (lowerMessage.includes('book') || lowerMessage.includes('ride')) {
+                if (conversationContext.pickupLocation && conversationContext.dropLocation) {
+                    return "Perfect! I can see you have both pickup and destination set. Would you like me to help you complete the booking? Just click 'Show Route & Calculate Fare' first! 🚗✨";
+                } else {
+                    return "I'd love to help you book a ride! 🚗 Please enter your pickup location and destination in the booking form, and I'll guide you through the process.";
+                }
+            }
+            
+            // Fare responses with context
+            if (lowerMessage.includes('fare') || lowerMessage.includes('price') || lowerMessage.includes('cost')) {
+                if (conversationContext.currentRoute) {
+                    const fare = document.getElementById('estimated-fare')?.textContent || 'calculating...';
+                    return `Based on your current route, the estimated fare is **₹${fare}** for a ${conversationContext.selectedVehicle}. This includes our base fare and distance charges. Ready to book? 💰`;
+                } else {
+                    return "Our fare structure is:\n• **Mini**: ₹8/km 🚗\n• **Sedan**: ₹12/km 🚙\n• **SUV**: ₹18/km 🚐\n• **Bike**: ₹5/km 🏍️\n\nPlus ₹30 base fare. Enter your locations to get an exact estimate!";
+                }
+            }
+            
+            // Default helpful response
+            return "I'm here to help with your cab booking needs! 😊 You can ask me about:\n• **Booking rides** 🚗\n• **Checking fares** 💰\n• **Route information** 🗺️\n• **Vehicle types** 🚙\n• **Our services** 📞\n\nWhat would you like to know?";
+        }
+
+        // Auto-resize chat input
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('gemini-chat-input');
+            if (chatInput) {
+                chatInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 96) + 'px';
+                });
+            }
+        });
+
+        // On page load, check if there was a pending booking stored (from unauthenticated attempt)
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const pending = sessionStorage.getItem('pendingBooking');
+                if (pending) {
+                    const payload = JSON.parse(pending);
+                    // Remove it to avoid loops
+                    sessionStorage.removeItem('pendingBooking');
+
+                    // Auto-retry the booking immediately (no confirmation) so the UX continues after login
+                    fetch('/api/v1/booking/create', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(async (resp) => {
+                        if (resp.ok) return resp.json().catch(() => null);
+                        let body = null;
+                        try { body = await resp.json(); } catch (e) { body = await resp.text().catch(() => null); }
+                        const errMsg = (body && body.error) ? body.error : (typeof body === 'string' ? body : resp.statusText || 'Unknown error');
+                        throw new Error(`HTTP ${resp.status} ${resp.statusText} - ${errMsg}`);
+                    })
+                    .then((data) => {
+                        alert('🎉 Booking Confirmed! A confirmation email has been sent.');
+                        clearMap();
+                    })
+                    .catch((err) => {
+                        console.error('Retry booking failed:', err);
+                        alert('Retrying booking failed: ' + err.message);
+                    });
+                }
+            } catch (e) {
+                console.warn('No pending booking to retry or error parsing it', e);
+            }
+        });
+
+    </script>
+</body>
+</html>

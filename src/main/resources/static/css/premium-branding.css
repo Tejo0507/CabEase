@@ -1,0 +1,294 @@
+/* Premium Favicon and Logo Styles */
+
+/* Custom logo styling */
+.cabease-logo {
+    display: inline-block;
+    font-size: 2rem;
+    font-weight: 900;
+    background: var(--gradient-luxury);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px var(--accent);
+    position: relative;
+    animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+.cabease-logo::before {
+    content: '🚗';
+    position: absolute;
+    left: -35px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    animation: logoCar 2s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    0% { filter: drop-shadow(0 0 10px var(--accent)); }
+    100% { filter: drop-shadow(0 0 25px var(--accent)); }
+}
+
+@keyframes logoCar {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    50% { transform: translateY(-50%) translateX(5px); }
+}
+
+/* Animated loading spinner */
+.car-spinner {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    margin: 20px auto;
+}
+
+.car-spinner::before {
+    content: '🚗';
+    position: absolute;
+    font-size: 2rem;
+    animation: spin 2s linear infinite;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Premium loading overlay */
+.premium-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--gradient-carbon);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.premium-loading.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-text {
+    color: var(--accent);
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 20px;
+    animation: textPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Premium progress bar */
+.progress-bar-premium {
+    width: 300px;
+    height: 8px;
+    background: var(--gradient-carbon);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--primary);
+    margin-top: 30px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--gradient-luxury);
+    width: 0%;
+    animation: progressFill 3s ease-in-out forwards;
+    box-shadow: 0 0 10px var(--accent);
+}
+
+@keyframes progressFill {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+/* Floating car animation for background */
+.floating-car {
+    position: fixed;
+    font-size: 2rem;
+    color: rgba(255, 107, 0, 0.3);
+    animation: floatAcross 10s linear infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+@keyframes floatAcross {
+    0% {
+        left: -100px;
+        opacity: 0;
+    }
+    10%, 90% {
+        opacity: 1;
+    }
+    100% {
+        left: calc(100% + 100px);
+        opacity: 0;
+    }
+}
+
+/* Premium notification styles */
+.premium-notification {
+    position: fixed;
+    top: 100px;
+    right: 30px;
+    background: var(--gradient-carbon);
+    border: 2px solid var(--primary);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    z-index: 1050;
+    max-width: 350px;
+    animation: slideInNotification 0.5s ease-out;
+}
+
+@keyframes slideInNotification {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-icon {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-right: 15px;
+    animation: iconBounce 2s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Premium button variants */
+.btn-luxury {
+    background: var(--gradient-luxury);
+    border: 2px solid var(--accent);
+    color: var(--dark);
+    font-weight: 900;
+    padding: 15px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-luxury:hover {
+    background: var(--gradient-racing);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+}
+
+.btn-sport {
+    background: var(--gradient-racing);
+    border: 2px solid var(--danger);
+    color: white;
+    font-weight: 800;
+    padding: 15px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-sport:hover {
+    background: var(--gradient-electric);
+    border-color: var(--info);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.4);
+}
+
+/* Enhanced form controls */
+.form-control-premium {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 107, 0, 0.3);
+    border-radius: 15px;
+    color: white;
+    padding: 15px 20px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-premium:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+}
+
+.form-control-premium::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Car-themed animations */
+.engine-rev {
+    animation: engineRevAnimation 0.3s ease-in-out;
+}
+
+@keyframes engineRevAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.turbo-boost {
+    animation: turboBoost 0.5s ease-out;
+}
+
+@keyframes turboBoost {
+    0% { 
+        transform: scale(1); 
+        filter: blur(0px);
+    }
+    50% { 
+        transform: scale(1.1); 
+        filter: blur(2px);
+    }
+    100% { 
+        transform: scale(1); 
+        filter: blur(0px);
+    }
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+    .cabease-logo {
+        font-size: 1.5rem;
+    }
+    
+    .car-spinner {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .progress-bar-premium {
+        width: 250px;
+    }
+    
+    .premium-notification {
+        right: 15px;
+        max-width: 300px;
+    }
+}

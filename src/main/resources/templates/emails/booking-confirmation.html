@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - CabEase</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .email-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .content {
+            background: white;
+            padding: 40px;
+        }
+        .booking-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+        .booking-id {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .icon {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        .driver-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .driver-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .vehicle-info {
+            color: #666;
+            font-size: 1.1em;
+        }
+        .cancel-button {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+        .cancel-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+            text-decoration: none;
+            color: white;
+        }
+        .cancel-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .cancel-note {
+            color: #856404;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .footer {
+            background: #333;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .detail-value {
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🚗 CabEase</h1>
+            <p>Your ride is confirmed!</p>
+        </div>
+        
+        <div class="content">
+            <div class="booking-id">
+                <span class="icon">🎫</span> Booking ID: <span th:text="${booking.id}"></span>
+            </div>
+
+            <div class="booking-card">
+                <h3 style="margin-top: 0; color: #667eea;">📍 Trip Details</h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <span class="icon">🚩</span> Pickup Location
+                    </span>
+                    <span class="detail-value" th:text="${booking.pickupLocation}"></span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <span class="icon">🏁</span> Drop Location
+                    </span>
+                    <span class="detail-value" th:text="${booking.dropLocation}"></span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <span class="icon">📅</span> Booking Date & Time
+                    </span>
+                    <span class="detail-value" th:text="${bookingDateTime}"></span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <span class="icon">💰</span> Estimated Fare
+                    </span>
+                    <span class="detail-value" th:text="${estimatedFare}" style="color: #28a745; font-weight: bold;"></span>
+                </div>
+            </div>
+
+            <div class="driver-section" th:if="${driver}">
+                <h3 style="margin-top: 0; color: #667eea;">👨‍✈️ Your Driver</h3>
+                <div class="driver-name" th:text="${driver.name}"></div>
+                <div class="vehicle-info">
+                    <span th:text="${cab.vehicleType}"></span> • 
+                    <span th:text="${cab.registrationNumber}"></span>
+                </div>
+                <div style="margin-top: 10px; color: #666;">
+                    <span class="icon">⭐</span> Rating: <span th:text="${cab.averageRating != null ? cab.averageRating : 'New Driver'}"></span>
+                </div>
+            </div>
+
+            <div class="cancel-section">
+                <h4 style="margin-top: 0; color: #856404;">Need to Cancel?</h4>
+                <p>If your plans change, you can cancel your ride using the button below:</p>
+                <a th:href="${cancellationUrl}" class="cancel-button">
+                    🚫 Cancel This Ride
+                </a>
+                <div class="cancel-note">
+                    Note: Cancellation may be subject to charges based on our cancellation policy.
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #14b8a6, #22c55e); padding: 25px; border-radius: 12px; margin: 20px 0; text-align: center;">
+                <h3 style="margin-top: 0; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">�️ Track Your Driver Live!</h3>
+                <p style="color: white; font-size: 1.1em; margin-bottom: 20px;">Watch your driver arrive in real-time on our interactive map</p>
+                <a th:href="${trackingUrl}" style="background: white; color: #14b8a6; padding: 15px 35px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                    📍 Track Your Ride Now
+                </a>
+                <p style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin-top: 15px; margin-bottom: 0;">
+                    ✨ See driver location • ETA updates • Direct call to driver
+                </p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Thank you for choosing CabEase!</strong></p>
+            <p>For support, contact us at <a href="mailto:support@cabease.com" style="color: #667eea;">support@cabease.com</a></p>
+            <div class="social-links">
+                <a href="#">Facebook</a> • 
+                <a href="#">Twitter</a> • 
+                <a href="#">Instagram</a>
+            </div>
+            <p style="font-size: 0.8em; opacity: 0.8;">
+                This is an automated email. Please do not reply to this message.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fare Calculator - CabEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places,geometry"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Location Input Section */
+        .location-section {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .location-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .location-input-group label {
+            display: block;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .location-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+        }
+
+        .input-icon input {
+            padding-left: 3rem;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .distance-info {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .distance-info.show {
+            display: block;
+        }
+
+        .distance-info p {
+            margin: 0.5rem 0;
+            color: #4a5568;
+        }
+
+        .distance-info strong {
+            color: #667eea;
+        }
+
+        /* Map Section */
+        .map-section {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+        }
+
+        /* Fare Estimates Grid */
+        .fare-estimates {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .estimates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .vehicle-card {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .vehicle-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .vehicle-card.recommended {
+            border-color: #38a169;
+            background: linear-gradient(135deg, rgba(56, 161, 105, 0.05) 0%, rgba(56, 161, 105, 0.1) 100%);
+        }
+
+        .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .vehicle-icon {
+            font-size: 2.5rem;
+        }
+
+        .recommended-badge {
+            background: #38a169;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .vehicle-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .vehicle-description {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+
+        .vehicle-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .info-item i {
+            color: #667eea;
+        }
+
+        .fare-breakdown {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+        }
+
+        .fare-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .fare-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .surge-indicator {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .estimates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-calculator"></i> Fare Calculator</h1>
+            <div class="nav-links">
+                <a href="/booking-dashboard" class="nav-link">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="/analytics-dashboard" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a href="/schedule-ride" class="nav-link">
+                    <i class="fas fa-calendar-plus"></i> Schedule Ride
+                </a>
+                <a href="/profile" class="nav-link">
+                    <i class="fas fa-user-circle"></i> Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Location Input Section -->
+            <div class="location-section">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Enter Journey Details
+                </h2>
+
+                <div class="location-input-group">
+                    <label for="pickupLocation">Pickup Location</label>
+                    <div class="input-icon">
+                        <i class="fas fa-circle" style="color: #38a169;"></i>
+                        <input type="text" id="pickupLocation" class="location-input" placeholder="Enter pickup location">
+                    </div>
+                </div>
+
+                <div class="location-input-group">
+                    <label for="dropLocation">Drop Location</label>
+                    <div class="input-icon">
+                        <i class="fas fa-map-marker-alt" style="color: #e53e3e;"></i>
+                        <input type="text" id="dropLocation" class="location-input" placeholder="Enter drop location">
+                    </div>
+                </div>
+
+                <button id="calculateBtn" class="calculate-btn">
+                    <i class="fas fa-calculator"></i> Calculate Fare
+                </button>
+
+                <div id="distanceInfo" class="distance-info">
+                    <p><strong>Distance:</strong> <span id="distanceText">-</span></p>
+                    <p><strong>Duration:</strong> <span id="durationText">-</span></p>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section">
+                <h2 class="section-title">
+                    <i class="fas fa-route"></i>
+                    Route Preview
+                </h2>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Fare Estimates Section -->
+        <div class="fare-estimates">
+            <h2 class="section-title">
+                <i class="fas fa-rupee-sign"></i>
+                Fare Estimates
+            </h2>
+            <div id="estimatesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-calculator"></i>
+                    <p>Enter pickup and drop locations to see fare estimates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map, pickupMarker, dropMarker, directionsService, directionsRenderer;
+        let pickupAutocomplete, dropAutocomplete;
+        let pickupLocation = null, dropLocation = null;
+
+        // Initialize Google Maps
+        function initMap() {
+            // Default to a central location (can be changed)
+            const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // Delhi
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: defaultCenter,
+                styles: [
+                    {
+                        featureType: 'all',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#f5f5f5' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#c9e7ff' }]
+                    }
+                ]
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#667eea',
+                    strokeWeight: 5
+                }
+            });
+
+            // Initialize autocomplete
+            const pickupInput = document.getElementById('pickupLocation');
+            const dropInput = document.getElementById('dropLocation');
+
+            pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput);
+            dropAutocomplete = new google.maps.places.Autocomplete(dropInput);
+
+            pickupAutocomplete.addListener('place_changed', () => {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    pickupLocation = {
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng(),
+                        address: place.formatted_address
+                    };
+                    updateRoute();
+                }
+            });
+
+            dropAutocomplete.addListener('place_changed', () => {
+                const place = dropAutocomplete.getPlace();
+                if (place.geometry) {
+                    dropLocation = {
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng(),
+                        address: place.formatted_address
+                    };
+                    updateRoute();
+                }
+            });
+        }
+
+        // Update route on map
+        function updateRoute() {
+            if (!pickupLocation || !dropLocation) return;
+
+            const request = {
+                origin: new google.maps.LatLng(pickupLocation.lat, pickupLocation.lng),
+                destination: new google.maps.LatLng(dropLocation.lat, dropLocation.lng),
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // Display distance and duration
+                    const route = result.routes[0].legs[0];
+                    document.getElementById('distanceText').textContent = route.distance.text;
+                    document.getElementById('durationText').textContent = route.duration.text;
+                    document.getElementById('distanceInfo').classList.add('show');
+
+                    // Add custom markers
+                    if (pickupMarker) pickupMarker.setMap(null);
+                    if (dropMarker) dropMarker.setMap(null);
+
+                    pickupMarker = new google.maps.Marker({
+                        position: request.origin,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#38a169',
+                            fillOpacity: 1,
+                            strokeColor: 'white',
+                            strokeWeight: 3,
+                            scale: 10
+                        }
+                    });
+
+                    dropMarker = new google.maps.Marker({
+                        position: request.destination,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#e53e3e',
+                            fillOpacity: 1,
+                            strokeColor: 'white',
+                            strokeWeight: 3,
+                            scale: 10
+                        }
+                    });
+                }
+            });
+        }
+
+        // Calculate fare
+        document.getElementById('calculateBtn').addEventListener('click', async () => {
+            if (!pickupLocation || !dropLocation) {
+                alert('Please select both pickup and drop locations');
+                return;
+            }
+
+            const btn = document.getElementById('calculateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+
+            document.getElementById('estimatesContainer').innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Calculating fares for all vehicle types...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/api/v1/fare/estimate?pickupLat=${pickupLocation.lat}&pickupLng=${pickupLocation.lng}&dropLat=${dropLocation.lat}&dropLng=${dropLocation.lng}`);
+                
+                if (response.ok) {
+                    const estimates = await response.json();
+                    displayFareEstimates(estimates);
+                } else {
+                    throw new Error('Failed to calculate fares');
+                }
+            } catch (error) {
+                console.error('Error calculating fares:', error);
+                document.getElementById('estimatesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: #e53e3e;"></i>
+                        <p>Error calculating fares. Please try again.</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-calculator"></i> Calculate Fare';
+            }
+        });
+
+        // Display fare estimates
+        function displayFareEstimates(estimates) {
+            if (!estimates || estimates.length === 0) {
+                document.getElementById('estimatesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-car"></i>
+                        <p>No vehicles available for this route</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="estimates-grid">
+                    ${estimates.map(estimate => createVehicleCard(estimate)).join('')}
+                </div>
+            `;
+
+            document.getElementById('estimatesContainer').innerHTML = html;
+        }
+
+        // Create vehicle card HTML
+        function createVehicleCard(estimate) {
+            const hasSurge = estimate.surgeMultiplier > 1.0;
+            const surgeHtml = hasSurge ? `
+                <div class="surge-indicator">
+                    <i class="fas fa-bolt"></i>
+                    ${estimate.surgeMultiplier}x Surge Pricing
+                </div>
+            ` : '';
+
+            const recommendedHtml = estimate.isRecommended ? `
+                <span class="recommended-badge">Recommended</span>
+            ` : '';
+
+            return `
+                <div class="vehicle-card ${estimate.isRecommended ? 'recommended' : ''}">
+                    <div class="vehicle-header">
+                        <div class="vehicle-icon">${estimate.icon}</div>
+                        ${recommendedHtml}
+                    </div>
+                    
+                    ${surgeHtml}
+                    
+                    <div class="vehicle-name">${estimate.displayName}</div>
+                    <div class="vehicle-description">${estimate.description}</div>
+                    
+                    <div class="vehicle-info">
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            ${estimate.capacity} Seats
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            ${estimate.estimatedArrivalTime} mins
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-car"></i>
+                            ${estimate.availableCount || 0} Available
+                        </div>
+                    </div>
+                    
+                    <div class="fare-breakdown">
+                        <div class="fare-row">
+                            <span>Base Fare:</span>
+                            <span>₹${estimate.baseFare.toFixed(2)}</span>
+                        </div>
+                        ${hasSurge ? `
+                            <div class="fare-row">
+                                <span>Surge Charge:</span>
+                                <span>₹${estimate.surgeAmount.toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                        <div class="fare-row">
+                            <span>Tax (5%):</span>
+                            <span>₹${estimate.taxAmount.toFixed(2)}</span>
+                        </div>
+                        
+                        <div class="fare-total">
+                            <span>Total Fare:</span>
+                            <span>₹${estimate.totalFare.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize map on page load
+        window.onload = initMap;
+    </script>
+</body>
+</html>

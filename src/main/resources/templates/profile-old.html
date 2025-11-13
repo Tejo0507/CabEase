@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - CabEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .profile-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-section {
+            position: relative;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid #667eea;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 600;
+        }
+
+        .avatar-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #667eea;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .avatar-upload:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-email {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .membership-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .membership-SILVER {
+            background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+            color: white;
+        }
+
+        .membership-GOLD {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+        }
+
+        .membership-PLATINUM {
+            background: linear-gradient(135deg, #E5E4E2 0%, #B4B4B4 100%);
+            color: #2d3748;
+        }
+
+        .membership-DIAMOND {
+            background: linear-gradient(135deg, #B9F2FF 0%, #1E90FF 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .preferences-section {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .theme-option {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-option:hover {
+            border-color: #667eea;
+        }
+
+        .theme-option.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .notification-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            border-radius: 34px;
+            transition: 0.4s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #38a169;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #e53e3e;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+            <div class="nav-links">
+                <a href="/booking-dashboard" class="nav-link">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="/analytics-dashboard" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a href="/fare-calculator" class="nav-link">
+                    <i class="fas fa-calculator"></i> Fare Calculator
+                </a>
+                <a href="/schedule-ride" class="nav-link">
+                    <i class="fas fa-calendar-plus"></i> Schedule Ride
+                </a>
+                <a href="/wallet" class="nav-link">
+                    <i class="fas fa-wallet"></i> Wallet
+                </a>
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="successAlert" class="alert alert-success"></div>
+        <div id="errorAlert" class="alert alert-error"></div>
+
+        <!-- Profile Container -->
+        <div class="profile-container">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="avatar-section">
+                    <div class="avatar" id="avatarDisplay">
+                        <span id="avatarInitial">U</span>
+                    </div>
+                    <div class="avatar-upload" onclick="uploadPhoto()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <h2 class="user-name" id="userName">Loading...</h2>
+                    <p class="user-email" id="userEmail">Loading...</p>
+                    <span class="membership-badge" id="membershipBadge">SILVER</span>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statBookings">0</div>
+                    <div class="stat-label">Total Rides</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statSpent">₹0</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statPoints">0</div>
+                    <div class="stat-label">Loyalty Points</div>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="phoneNumber"><i class="fas fa-phone"></i> Phone Number</label>
+                        <input type="tel" id="phoneNumber" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label for="alternatePhone"><i class="fas fa-phone-alt"></i> Alternate Phone</label>
+                        <input type="tel" id="alternatePhone" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateOfBirth"><i class="fas fa-birthday-cake"></i> Date of Birth</label>
+                        <input type="date" id="dateOfBirth">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                        <select id="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Address
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="addressLine1">Address Line 1</label>
+                        <input type="text" id="addressLine1" placeholder="House/Flat No, Building">
+                    </div>
+                    <div class="form-group">
+                        <label for="addressLine2">Address Line 2</label>
+                        <input type="text" id="addressLine2" placeholder="Area, Landmark">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" placeholder="Mumbai">
+                    </div>
+                    <div class="form-group">
+                        <label for="state">State</label>
+                        <input type="text" id="state" placeholder="Maharashtra">
+                    </div>
+                    <div class="form-group">
+                        <label for="zipCode">ZIP Code</label>
+                        <input type="text" id="zipCode" placeholder="400001">
+                    </div>
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" placeholder="India">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-ambulance"></i>
+                    Emergency Contact
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="emergencyContactName">Contact Name</label>
+                        <input type="text" id="emergencyContactName" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergencyContactPhone">Contact Phone</label>
+                        <input type="tel" id="emergencyContactPhone" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergencyContactRelation">Relationship</label>
+                        <input type="text" id="emergencyContactRelation" placeholder="Father, Mother, Spouse, etc.">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="preferences-section">
+                <h3 class="section-title">
+                    <i class="fas fa-cog"></i>
+                    Preferences
+                </h3>
+                
+                <!-- Theme Selector -->
+                <div class="form-group">
+                    <label>Theme</label>
+                    <div class="theme-selector">
+                        <div class="theme-option active" data-theme="light" onclick="selectTheme('light')">
+                            <i class="fas fa-sun" style="font-size: 2rem; color: #f39c12;"></i>
+                            <p>Light</p>
+                        </div>
+                        <div class="theme-option" data-theme="dark" onclick="selectTheme('dark')">
+                            <i class="fas fa-moon" style="font-size: 2rem; color: #667eea;"></i>
+                            <p>Dark</p>
+                        </div>
+                        <div class="theme-option" data-theme="auto" onclick="selectTheme('auto')">
+                            <i class="fas fa-adjust" style="font-size: 2rem; color: #718096;"></i>
+                            <p>Auto</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Language -->
+                <div class="form-group">
+                    <label for="preferredLanguage"><i class="fas fa-language"></i> Preferred Language</label>
+                    <select id="preferredLanguage">
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="mr">Marathi</option>
+                        <option value="ta">Tamil</option>
+                        <option value="te">Telugu</option>
+                        <option value="bn">Bengali</option>
+                    </select>
+                </div>
+
+                <!-- Notifications -->
+                <div class="form-group">
+                    <label>Notification Preferences</label>
+                    <div class="notification-toggles">
+                        <div class="toggle-item">
+                            <span><i class="fas fa-envelope"></i> Email Notifications</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notifEmail" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <span><i class="fas fa-sms"></i> SMS Notifications</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notifSMS" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <span><i class="fas fa-bell"></i> Push Notifications</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notifPush" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+                <button class="btn btn-primary" onclick="saveProfile()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let profileData = null;
+        let selectedTheme = 'light';
+
+        // Load profile on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+        });
+
+        // Load user profile
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    profileData = result.data;
+                    populateForm(profileData);
+                } else {
+                    showError(result.message || 'Failed to load profile');
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showError('Error loading profile');
+            }
+        }
+
+        // Populate form with profile data
+        function populateForm(data) {
+            // User info
+            document.getElementById('userName').textContent = data.userName || 'User';
+            document.getElementById('userEmail').textContent = data.userEmail || '';
+            
+            // Avatar
+            if (data.photoUrl) {
+                document.getElementById('avatarDisplay').innerHTML = 
+                    `<img src="${data.photoUrl}" class="avatar" alt="Profile">`;
+            } else {
+                const initial = (data.userName || 'U').charAt(0).toUpperCase();
+                document.getElementById('avatarInitial').textContent = initial;
+            }
+
+            // Membership
+            const badge = document.getElementById('membershipBadge');
+            badge.textContent = data.membershipTier || 'SILVER';
+            badge.className = `membership-badge membership-${data.membershipTier || 'SILVER'}`;
+
+            // Statistics
+            document.getElementById('statBookings').textContent = data.totalBookings || 0;
+            document.getElementById('statSpent').textContent = `₹${(data.totalSpent || 0).toFixed(2)}`;
+            document.getElementById('statPoints').textContent = data.loyaltyPoints || 0;
+
+            // Personal info
+            document.getElementById('phoneNumber').value = data.phoneNumber || '';
+            document.getElementById('alternatePhone').value = data.alternatePhone || '';
+            document.getElementById('dateOfBirth').value = data.dateOfBirth || '';
+            document.getElementById('gender').value = data.gender || '';
+
+            // Address
+            document.getElementById('addressLine1').value = data.addressLine1 || '';
+            document.getElementById('addressLine2').value = data.addressLine2 || '';
+            document.getElementById('city').value = data.city || '';
+            document.getElementById('state').value = data.state || '';
+            document.getElementById('zipCode').value = data.zipCode || '';
+            document.getElementById('country').value = data.country || 'India';
+
+            // Emergency contact
+            document.getElementById('emergencyContactName').value = data.emergencyContactName || '';
+            document.getElementById('emergencyContactPhone').value = data.emergencyContactPhone || '';
+            document.getElementById('emergencyContactRelation').value = data.emergencyContactRelation || '';
+
+            // Preferences
+            document.getElementById('preferredLanguage').value = data.preferredLanguage || 'en';
+            
+            // Theme
+            selectedTheme = data.themePreference || 'light';
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.theme === selectedTheme) {
+                    opt.classList.add('active');
+                }
+            });
+
+            // Notifications
+            try {
+                const notifPrefs = JSON.parse(data.notificationPreferences || '{"email":true,"sms":true,"push":true}');
+                document.getElementById('notifEmail').checked = notifPrefs.email !== false;
+                document.getElementById('notifSMS').checked = notifPrefs.sms !== false;
+                document.getElementById('notifPush').checked = notifPrefs.push !== false;
+            } catch (e) {
+                console.error('Error parsing notification preferences:', e);
+            }
+        }
+
+        // Select theme
+        function selectTheme(theme) {
+            selectedTheme = theme;
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.theme === theme) {
+                    opt.classList.add('active');
+                }
+            });
+        }
+
+        // Save profile
+        async function saveProfile() {
+            try {
+                // Collect form data
+                const updates = {
+                    phoneNumber: document.getElementById('phoneNumber').value,
+                    alternatePhone: document.getElementById('alternatePhone').value,
+                    dateOfBirth: document.getElementById('dateOfBirth').value,
+                    gender: document.getElementById('gender').value,
+                    addressLine1: document.getElementById('addressLine1').value,
+                    addressLine2: document.getElementById('addressLine2').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zipCode: document.getElementById('zipCode').value,
+                    country: document.getElementById('country').value,
+                    emergencyContactName: document.getElementById('emergencyContactName').value,
+                    emergencyContactPhone: document.getElementById('emergencyContactPhone').value,
+                    emergencyContactRelation: document.getElementById('emergencyContactRelation').value,
+                    preferredLanguage: document.getElementById('preferredLanguage').value,
+                    themePreference: selectedTheme
+                };
+
+                // Update profile
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update theme
+                    await updateTheme(selectedTheme);
+                    
+                    // Update notifications
+                    await updateNotifications();
+                    
+                    showSuccess('Profile updated successfully!');
+                    
+                    // Reload profile
+                    setTimeout(() => loadProfile(), 1500);
+                } else {
+                    showError(result.message || 'Failed to update profile');
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showError('Error saving profile');
+            }
+        }
+
+        // Update theme
+        async function updateTheme(theme) {
+            try {
+                await fetch('/api/profile/theme', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ theme })
+                });
+            } catch (error) {
+                console.error('Error updating theme:', error);
+            }
+        }
+
+        // Update notifications
+        async function updateNotifications() {
+            try {
+                const preferences = {
+                    email: document.getElementById('notifEmail').checked,
+                    sms: document.getElementById('notifSMS').checked,
+                    push: document.getElementById('notifPush').checked
+                };
+
+                await fetch('/api/profile/notifications', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ preferences: JSON.stringify(preferences) })
+                });
+            } catch (error) {
+                console.error('Error updating notifications:', error);
+            }
+        }
+
+        // Upload photo
+        function uploadPhoto() {
+            const url = prompt('Enter photo URL (or upload feature coming soon):');
+            if (url && url.trim()) {
+                fetch('/api/profile/photo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ photoUrl: url.trim() })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showSuccess('Photo updated successfully!');
+                        loadProfile();
+                    } else {
+                        showError(result.message || 'Failed to update photo');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading photo:', error);
+                    showError('Error uploading photo');
+                });
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            if (confirm('Reset all changes?')) {
+                loadProfile();
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = '✓ ' + message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = '✗ ' + message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

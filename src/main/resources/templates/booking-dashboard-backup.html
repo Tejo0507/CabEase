@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>CabEase - Book Your Ride</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/css/booking-dashboard.css" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss&libraries=places,geometry&callback=initMap" async defer></script>
+    
+    <style>
+        /* Enhanced Mobile Dashboard Styles */
+        .booking-app {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .top-nav {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .brand-icon {
+            font-size: 1.5rem;
+        }
+        
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .profile-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+        }
+        
+        .main-content {
+            padding: 0;
+            margin-bottom: 80px;
+        }
+        
+        .booking-container {
+            position: relative;
+            height: calc(100vh - 140px);
+        }
+        
+        .map-container {
+            height: 60%;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+        
+        .map-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+        
+        .current-location-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .booking-form-container {
+            height: 40%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .location-inputs {
+            margin-bottom: 1rem;
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+        
+        .location-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+        }
+        
+        .location-dot.pickup {
+            background: #22c55e;
+        }
+        
+        .location-dot.drop {
+            background: #ef4444;
+        }
+        
+        .location-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            z-index: 1;
+        }
+        
+        .location-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Google Places Autocomplete Styling */
+        .pac-container {
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 0.5rem;
+        }
+        
+        .pac-item {
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem;
+        }
+        
+        .pac-item:hover {
+            background-color: rgba(255, 107, 53, 0.2);
+        }
+        
+        .pac-item-selected {
+            background-color: rgba(255, 107, 53, 0.3);
+        }
+        
+        .pac-matched {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+        
+        .location-separator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0.5rem 0;
+            position: relative;
+        }
+        
+        .separator-line {
+            width: 2px;
+            height: 1rem;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .swap-locations {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .ride-types {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .ride-type {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ride-type.active {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid #ff6b35;
+        }
+        
+        .ride-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        .ride-info {
+            flex: 1;
+        }
+        
+        .ride-info h4 {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .ride-info p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+        }
+        
+        .price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #22c55e;
+            display: block;
+        }
+        
+        .eta {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .booking-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .schedule-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .book-now-btn {
+            flex: 2;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border: none;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem 0;
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: #ff6b35;
+        }
+        
+        .nav-item i {
+            font-size: 1.25rem;
+        }
+        
+        .nav-item span {
+            font-size: 0.75rem;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .route-info-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .route-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .route-detail {
+            text-align: center;
+        }
+        
+        .route-detail-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.25rem;
+        }
+        
+        .route-detail-value {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .fare-estimate {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .fare-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.25rem;
+        }
+        
+        .fare-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="booking-app">
+            <!-- Top Navigation Bar -->
+            <nav class="top-nav">
+                <div class="nav-brand">
+                    <div class="brand-icon">🚗</div>
+                    <span class="brand-text">CabEase</span>
+                </div>
+                <div class="nav-actions">
+                    <div class="user-profile" onclick="toggleProfileMenu()">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Profile" class="profile-avatar">
+                        <span class="user-name" th:text="${user.name}">User Name</span>
+                        <i class="fas fa-chevron-down profile-arrow"></i>
+                        
+                        <!-- Profile Dropdown -->
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-header">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Profile">
+                                <div class="profile-info">
+                                    <h4 th:text="${user.name}">John Doe</h4>
+                                    <p th:text="${user.email}">john@example.com</p>
+                                    <div class="rating">
+                                        <span class="stars">★★★★★</span>
+                                        <span class="rating-text">4.9</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile-menu">
+                                <a href="#" class="menu-item" onclick="showSection('profile')">
+                                    <i class="fas fa-user"></i> Edit Profile
+                                </a>
+                                <a href="#" class="menu-item" onclick="showSection('wallet')">
+                                    <i class="fas fa-wallet"></i> Wallet
+                                </a>
+                                <a href="#" class="menu-item" onclick="showSection('rides')">
+                                    <i class="fas fa-history"></i> My Rides
+                                </a>
+                                <a href="#" class="menu-item" onclick="showSection('support')">
+                                    <i class="fas fa-headset"></i> Support
+                                </a>
+                                <a href="/logout" class="menu-item logout">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="menu-toggle" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Mobile Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="showSection('booking')" data-section="booking">
+                    <i class="fas fa-home"></i>
+                    <span>Book</span>
+                </div>
+                <div class="nav-item" onclick="showSection('rides')" data-section="rides">
+                    <i class="fas fa-history"></i>
+                    <span>Rides</span>
+                </div>
+                <div class="nav-item" onclick="showSection('wallet')" data-section="wallet">
+                    <i class="fas fa-wallet"></i>
+                    <span>Wallet</span>
+                </div>
+                <div class="nav-item" onclick="showSection('profile')" data-section="profile">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item" onclick="showSection('support')" data-section="support">
+                    <i class="fas fa-headset"></i>
+                    <span>Support</span>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard Status Bar - Mobile Adapted -->
+            <div class="admin-status-bar" style="background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 1rem; margin: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 0.75rem; max-width: 100%;">
+                    <div class="stat-card" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 0.5rem; padding: 0.75rem; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="color: #22c55e; font-size: 0.7rem; margin-bottom: 0.25rem; font-weight: 500;">Available</div>
+                        <div style="color: white; font-size: 1.1rem; font-weight: bold;" id="available-cabs">18</div>
+                        <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6rem;">Cabs</div>
+                    </div>
+                    
+                    <div class="stat-card" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.5rem; padding: 0.75rem; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="color: #3b82f6; font-size: 0.7rem; margin-bottom: 0.25rem; font-weight: 500;">Active</div>
+                        <div style="color: white; font-size: 1.1rem; font-weight: bold;" id="active-drivers">25</div>
+                        <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6rem;">Drivers</div>
+                    </div>
+                    
+                    <div class="stat-card" style="background: rgba(255, 107, 53, 0.1); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 0.5rem; padding: 0.75rem; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="color: #ff6b35; font-size: 0.7rem; margin-bottom: 0.25rem; font-weight: 500;">Wait Time</div>
+                        <div style="color: white; font-size: 1.1rem; font-weight: bold;" id="wait-time">3 min</div>
+                        <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6rem;">Avg</div>
+                    </div>
+                    
+                    <div class="stat-card" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 0.5rem; padding: 0.75rem; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="color: #a855f7; font-size: 0.7rem; margin-bottom: 0.25rem; font-weight: 500;">Online</div>
+                        <div style="color: white; font-size: 1.1rem; font-weight: bold;" id="online-users">142</div>
+                        <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6rem;">Users</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                
+                <!-- Booking Section (Default) -->
+                <section id="booking-section" class="content-section active">
+                    <div class="booking-container">
+                        <!-- Map Container -->
+                        <div class="map-container">
+                            <div id="map" class="map"></div>
+                            <div class="map-overlay">
+                                <div class="current-location-btn" onclick="getCurrentLocation()">
+                                    <i class="fas fa-crosshairs"></i>
+                                </div>
+                                <!-- Coordinates Display -->
+                                <div class="coordinates-display" style="background: rgba(0,0,0,0.7); padding: 0.5rem; border-radius: 0.5rem; margin-top: 0.5rem; font-size: 0.8rem;">
+                                    <span id="coordinates">13.0827, 80.2707</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Booking Form -->
+                        <div class="booking-form-container">
+                            <div class="location-inputs">
+                                <div class="input-group from-location">
+                                    <div class="location-dot pickup"></div>
+                                    <input type="text" id="pickup-input" placeholder="Enter pickup location" class="location-input" autocomplete="off" spellcheck="false">
+                                    <button class="current-location-btn" onclick="setCurrentAsPickup()">
+                                        <i class="fas fa-crosshairs"></i>
+                                    </button>
+                                </div>
+                                <div class="location-separator">
+                                    <div class="separator-line"></div>
+                                    <button class="swap-locations" onclick="swapLocations()">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="input-group to-location">
+                                    <div class="location-dot drop"></div>
+                                    <input type="text" id="drop-input" placeholder="Enter destination" class="location-input" autocomplete="off" spellcheck="false">
+                                </div>
+                                
+                                <!-- Show Route Button -->
+                                <button onclick="showRoute()" class="show-route-btn" style="width: 100%; margin-top: 1rem; background: rgba(59, 130, 246, 0.8); border: none; color: white; padding: 0.75rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer;">
+                                    <i class="fas fa-route mr-2"></i>Show Route & Calculate Fare
+                                </button>
+                            </div>
+                            
+                            <!-- Route Info Card -->
+                            <div id="route-info-card" class="route-info-card" style="display: none;">
+                                <div class="route-details">
+                                    <div class="route-detail">
+                                        <div class="route-detail-label">Distance</div>
+                                        <div class="route-detail-value" id="route-distance">--</div>
+                                    </div>
+                                    <div class="route-detail">
+                                        <div class="route-detail-label">Duration</div>
+                                        <div class="route-detail-value" id="route-duration">--</div>
+                                    </div>
+                                </div>
+                                <div class="fare-estimate">
+                                    <div class="fare-label">Estimated Fare</div>
+                                    <div class="fare-amount">₹<span id="estimated-fare">0</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Management Control Cards - Admin Dashboard Features -->
+                            <div class="management-cards" style="margin-bottom: 1.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h3 style="color: white; font-size: 1rem; margin: 0;">Control Center</h3>
+                                    <button onclick="toggleManagementCards()" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 0.8rem;">
+                                        <i class="fas fa-chevron-down" id="management-toggle"></i>
+                                    </button>
+                                </div>
+                                
+                                <div id="management-cards-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem;">
+                                    <!-- Fleet Management Card -->
+                                    <div class="management-card" onclick="openFleetManagement()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #22c55e;">
+                                            <i class="fas fa-car"></i>
+                                        </div>
+                                        <div style="color: white; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem;">Fleet</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.7rem;">Management</div>
+                                    </div>
+                                    
+                                    <!-- Performance Analytics Card -->
+                                    <div class="management-card" onclick="openPerformanceAnalytics()" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #3b82f6;">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </div>
+                                        <div style="color: white; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem;">Analytics</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.7rem;">Performance</div>
+                                    </div>
+                                    
+                                    <!-- User Management Card -->
+                                    <div class="management-card" onclick="openUserManagement()" style="background: rgba(255, 107, 53, 0.1); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #ff6b35;">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div style="color: white; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem;">Users</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.7rem;">Management</div>
+                                    </div>
+                                    
+                                    <!-- System Settings Card -->
+                                    <div class="management-card" onclick="openSystemSettings()" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #a855f7;">
+                                            <i class="fas fa-cog"></i>
+                                        </div>
+                                        <div style="color: white; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem;">Settings</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.7rem;">System</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Cab Selection Grid - Desktop Features -->
+                            <div class="cab-selection-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+                                <!-- Mini Cab -->
+                                <div class="cab-type active" data-type="mini" onclick="selectCabType('mini')" style="background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🚗</div>
+                                    <h4 style="font-weight: bold; margin-bottom: 0.25rem; font-size: 0.9rem;">Mini</h4>
+                                    <p style="font-size: 0.8rem; color: #22c55e; font-weight: bold;">₹12/km</p>
+                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem;">4 seater</div>
+                                </div>
+                                
+                                <!-- Premium Cab -->
+                                <div class="cab-type" data-type="premium" onclick="selectCabType('premium')" style="background: rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🚙</div>
+                                    <h4 style="font-weight: bold; margin-bottom: 0.25rem; font-size: 0.9rem;">Premium</h4>
+                                    <p style="font-size: 0.8rem; color: #22c55e; font-weight: bold;">₹18/km</p>
+                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem;">AC • 4 seater</div>
+                                </div>
+                                
+                                <!-- Luxury Cab -->
+                                <div class="cab-type" data-type="luxury" onclick="selectCabType('luxury')" style="background: rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🚘</div>
+                                    <h4 style="font-weight: bold; margin-bottom: 0.25rem; font-size: 0.9rem;">Luxury</h4>
+                                    <p style="font-size: 0.8rem; color: #22c55e; font-weight: bold;">₹25/km</p>
+                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem;">Premium AC</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Cab Options -->
+                            <div class="additional-cab-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                                <div class="cab-type" data-type="auto" onclick="selectCabType('auto')" style="background: rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🛺</div>
+                                    <h4 style="font-weight: bold; margin-bottom: 0.25rem; font-size: 0.9rem;">Auto</h4>
+                                    <p style="font-size: 0.8rem; color: #22c55e; font-weight: bold;">₹8/km</p>
+                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem;">3 seater</div>
+                                </div>
+                                <div class="cab-type" data-type="bike" onclick="selectCabType('bike')" style="background: rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🏍️</div>
+                                    <h4 style="font-weight: bold; margin-bottom: 0.25rem; font-size: 0.9rem;">Bike</h4>
+                                    <p style="font-size: 0.8rem; color: #22c55e; font-weight: bold;">₹5/km</p>
+                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem;">Fast delivery</div>
+                                </div>
+                            </div>
+
+                            <!-- Booking Actions -->
+                            <div class="booking-actions">
+                                <button id="book-btn" onclick="bookNow()" class="book-now-btn" disabled style="opacity: 0.5;">
+                                    <i class="fas fa-taxi mr-2"></i>Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Search Overlay -->
+                    <div class="driver-search-overlay" id="driverSearchOverlay">
+                        <div class="search-content">
+                            <div class="search-animation">
+                                <div class="search-pulse"></div>
+                                <div class="search-icon">🔍</div>
+                            </div>
+                            <h3>Finding your ride...</h3>
+                            <p>Connecting you with nearby drivers</p>
+                            <div class="search-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="progress-text">Searching...</span>
+                            </div>
+                            <button class="cancel-search-btn" onclick="cancelSearch()">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Driver Found Overlay -->
+                    <div class="driver-found-overlay" id="driverFoundOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem;">
+                        <div class="driver-card" style="background: rgba(0, 0, 0, 0.9); border-radius: 1rem; padding: 1.5rem; max-width: 400px; width: 100%;">
+                            <div class="driver-header" style="display: flex; align-items: center; margin-bottom: 1rem; gap: 1rem;">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=driver1" alt="Driver" class="driver-photo" style="width: 3rem; height: 3rem; border-radius: 50%;">
+                                <div class="driver-info" style="flex: 1;">
+                                    <h3 class="driver-name" style="margin: 0 0 0.25rem 0; font-weight: bold;">Karthik Kumar</h3>
+                                    <div class="driver-rating" style="margin-bottom: 0.25rem;">
+                                        <span class="stars" style="color: #fbbf24;">★★★★★</span>
+                                        <span class="rating" style="margin-left: 0.5rem; color: rgba(255, 255, 255, 0.7);">4.9 (234)</span>
+                                    </div>
+                                    <p class="driver-vehicle" style="margin: 0; color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">Swift Dzire • TN 09 CB 1234</p>
+                                </div>
+                                <div class="driver-eta" style="text-align: center;">
+                                    <div class="eta-time" style="font-size: 1.25rem; font-weight: bold;">2 min</div>
+                                    <div class="eta-text" style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">away</div>
+                                </div>
+                            </div>
+                            
+                            <div class="trip-summary" style="background: rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; text-align: center;">
+                                    <div class="summary-item">
+                                        <div class="label" style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">Distance</div>
+                                        <div class="value" style="font-weight: bold; margin-top: 0.25rem;" id="driver-distance">--</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="label" style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">Duration</div>
+                                        <div class="value" style="font-weight: bold; margin-top: 0.25rem;" id="driver-duration">--</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="label" style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">Fare</div>
+                                        <div class="value" style="font-weight: bold; margin-top: 0.25rem; color: #22c55e;" id="driver-fare">--</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="driver-actions" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+                                <button class="action-btn call-btn" onclick="callDriver()" style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: white; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
+                                    <i class="fas fa-phone" style="display: block; margin-bottom: 0.25rem;"></i>
+                                    <span style="font-size: 0.8rem;">Call</span>
+                                </button>
+                                <button class="action-btn message-btn" onclick="messageDriver()" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: white; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
+                                    <i class="fas fa-comment" style="display: block; margin-bottom: 0.25rem;"></i>
+                                    <span style="font-size: 0.8rem;">Message</span>
+                                </button>
+                                <button class="action-btn track-btn" onclick="trackDriver()" style="background: rgba(255, 107, 53, 0.2); border: 1px solid #ff6b35; color: white; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
+                                    <i class="fas fa-map-marker-alt" style="display: block; margin-bottom: 0.25rem;"></i>
+                                    <span style="font-size: 0.8rem;">Track</span>
+                                </button>
+                            </div>
+                            
+                            <button class="cancel-ride-btn" onclick="cancelRide()" style="width: 100%; margin-top: 1rem; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
+                                Cancel Ride
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Success Modal - Desktop Dashboard Features -->
+                    <div id="success-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem;">
+                        <div style="background: rgba(0, 0, 0, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 2rem; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);">
+                            <!-- Success Animation -->
+                            <div style="margin-bottom: 1.5rem;">
+                                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); margin: 0 auto; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+                                    <i class="fas fa-check" style="font-size: 2rem; color: white;"></i>
+                                </div>
+                            </div>
+                            
+                            <h2 style="font-size: 1.75rem; font-weight: bold; margin-bottom: 0.5rem; color: white;">Booking Confirmed!</h2>
+                            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem; font-size: 1rem;">Your cab is on the way 🚖</p>
+                            
+                            <!-- Enhanced Driver Information -->
+                            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem;">
+                                <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #ff6b35, #f7931e); display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                        <i class="fas fa-user" style="color: white; font-size: 1.2rem;"></i>
+                                    </div>
+                                    <div style="text-align: left; flex: 1;">
+                                        <div style="font-weight: bold; font-size: 1.1rem; color: white;" id="driver-name">Karthik Kumar</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">Your Driver</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: #fbbf24; font-size: 0.9rem;">★★★★★</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">4.9 rating</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Vehicle Information -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                    <div style="text-align: left;">
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; margin-bottom: 0.25rem;">Vehicle</div>
+                                        <div style="font-weight: bold; color: white;" id="vehicle-info">Swift Dzire</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; margin-bottom: 0.25rem;">Number</div>
+                                        <div style="font-weight: bold; color: white;" id="vehicle-number">TN01AB1234</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- ETA Information -->
+                                <div style="background: rgba(255, 107, 53, 0.1); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 0.5rem; padding: 0.75rem;">
+                                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; margin-bottom: 0.25rem;">Arriving in</div>
+                                    <div style="font-weight: bold; color: #ff6b35; font-size: 1.2rem;" id="eta">5 minutes</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                                <button onclick="trackRide()" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6; padding: 0.75rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem;">
+                                    <i class="fas fa-map-marker-alt" style="margin-bottom: 0.25rem; display: block;"></i>Track
+                                </button>
+                                <button onclick="callDriver()" style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #22c55e; padding: 0.75rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem;">
+                                    <i class="fas fa-phone" style="margin-bottom: 0.25rem; display: block;"></i>Call
+                                </button>
+                                <button onclick="showSection('rides')" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #a855f7; padding: 0.75rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem;">
+                                    <i class="fas fa-history" style="margin-bottom: 0.25rem; display: block;"></i>Rides
+                                </button>
+                            </div>
+                            
+                            <!-- Close Button -->
+                            <button onclick="closeSuccessModal()" style="width: 100%; background: linear-gradient(135deg, #ff6b35, #f7931e); border: none; color: white; padding: 1rem; border-radius: 0.75rem; font-weight: bold; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">
+                                Book Another Ride
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- My Rides Section -->
+                <section id="rides-section" class="content-section">
+                    <div class="section-header">
+                        <h2>My Rides</h2>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="filterRides('all')">All</button>
+                            <button class="filter-tab" onclick="filterRides('completed')">Completed</button>
+                            <button class="filter-tab" onclick="filterRides('cancelled')">Cancelled</button>
+                        </div>
+                    </div>
+                    
+                    <div class="rides-list">
+                        <div class="ride-item">
+                            <div class="ride-icon status-completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="ride-details">
+                                <div class="ride-route">
+                                    <p class="from">Main Street</p>
+                                    <i class="fas fa-arrow-right"></i>
+                                    <p class="to">Tech Park</p>
+                                </div>
+                                <div class="ride-meta">
+                                    <span class="date">Today, 2:30 PM</span>
+                                    <span class="driver">Rajesh Kumar</span>
+                                </div>
+                            </div>
+                            <div class="ride-price">₹180</div>
+                        </div>
+                        
+                        <div class="ride-item">
+                            <div class="ride-icon status-cancelled">
+                                <i class="fas fa-times"></i>
+                            </div>
+                            <div class="ride-details">
+                                <div class="ride-route">
+                                    <p class="from">Airport</p>
+                                    <i class="fas fa-arrow-right"></i>
+                                    <p class="to">Home</p>
+                                </div>
+                                <div class="ride-meta">
+                                    <span class="date">Yesterday, 8:15 AM</span>
+                                    <span class="driver">Cancelled</span>
+                                </div>
+                            </div>
+                            <div class="ride-price cancelled">₹450</div>
+                        </div>
+                        
+                        <div class="ride-item">
+                            <div class="ride-icon status-completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="ride-details">
+                                <div class="ride-route">
+                                    <p class="from">Shopping Mall</p>
+                                    <i class="fas fa-arrow-right"></i>
+                                    <p class="to">Restaurant</p>
+                                </div>
+                                <div class="ride-meta">
+                                    <span class="date">Dec 15, 7:45 PM</span>
+                                    <span class="driver">Priya Sharma</span>
+                                </div>
+                            </div>
+                            <div class="ride-price">₹280</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Wallet Section -->
+                <section id="wallet-section" class="content-section">
+                    <div class="wallet-header">
+                        <h2>Wallet</h2>
+                        <div class="wallet-balance">
+                            <div class="balance-card">
+                                <div class="balance-info">
+                                    <p class="balance-label">Available Balance</p>
+                                    <h3 class="balance-amount">₹2,450</h3>
+                                </div>
+                                <div class="balance-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wallet-actions">
+                        <button class="wallet-action add-money" onclick="addMoney()">
+                            <i class="fas fa-plus"></i>
+                            Add Money
+                        </button>
+                        <button class="wallet-action transfer" onclick="transferMoney()">
+                            <i class="fas fa-exchange-alt"></i>
+                            Transfer
+                        </button>
+                        <button class="wallet-action history" onclick="showTransactionHistory()">
+                            <i class="fas fa-history"></i>
+                            History
+                        </button>
+                    </div>
+
+                    <div class="transaction-history">
+                        <h3>Recent Transactions</h3>
+                        <div class="transactions-list">
+                            <div class="transaction-item">
+                                <div class="transaction-icon debit">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <p class="transaction-type">Ride Payment</p>
+                                    <span class="transaction-date">Today, 2:30 PM</span>
+                                </div>
+                                <div class="transaction-amount debit">-₹180</div>
+                            </div>
+                            
+                            <div class="transaction-item">
+                                <div class="transaction-icon credit">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <p class="transaction-type">Wallet Topup</p>
+                                    <span class="transaction-date">Yesterday, 6:45 PM</span>
+                                </div>
+                                <div class="transaction-amount credit">+₹500</div>
+                            </div>
+                            
+                            <div class="transaction-item">
+                                <div class="transaction-icon debit">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <p class="transaction-type">Ride Payment</p>
+                                    <span class="transaction-date">Dec 15, 7:45 PM</span>
+                                </div>
+                                <div class="transaction-amount debit">-₹280</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profile Section -->
+                <section id="profile-section" class="content-section">
+                    <div class="profile-header">
+                        <div class="profile-avatar-section">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Profile" class="profile-avatar-large">
+                            <button class="edit-avatar-btn">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                        <div class="profile-rating">
+                            <div class="rating-display">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-text">4.9</span>
+                            </div>
+                            <p>Excellent rider</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-form">
+                        <div class="form-group">
+                            <label for="profileName">Full Name</label>
+                            <input type="text" id="profileName" th:value="${user.name}" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="profileEmail">Email</label>
+                            <input type="email" id="profileEmail" th:value="${user.email}" class="form-input" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="profilePhone">Phone Number</label>
+                            <input type="tel" id="profilePhone" value="+91 98765 43210" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="profileAddress">Home Address</label>
+                            <textarea id="profileAddress" class="form-textarea" rows="3">123 Main Street, Bangalore, Karnataka 560001</textarea>
+                        </div>
+                        
+                        <button class="save-profile-btn" onclick="saveProfile()">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+
+                    <div class="profile-stats">
+                        <h3>Your Stats</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-number">47</div>
+                                <div class="stat-label">Total Rides</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">4.9</div>
+                                <div class="stat-label">Rating</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">₹12,340</div>
+                                <div class="stat-label">Total Spent</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">3</div>
+                                <div class="stat-label">This Month</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Support Section -->
+                <section id="support-section" class="content-section">
+                    <div class="support-header">
+                        <h2>Help & Support</h2>
+                        <p>We're here to help you 24/7</p>
+                    </div>
+
+                    <div class="support-options">
+                        <div class="support-option" onclick="startLiveChat()">
+                            <div class="support-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="support-info">
+                                <h3>Live Chat</h3>
+                                <p>Chat with our support team</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+
+                        <div class="support-option" onclick="callSupport()">
+                            <div class="support-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="support-info">
+                                <h3>Call Support</h3>
+                                <p>+91 1800-123-4567</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+
+                        <div class="support-option" onclick="emailSupport()">
+                            <div class="support-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="support-info">
+                                <h3>Email Us</h3>
+                                <p>support@cabease.com</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+
+                    <div class="faq-section">
+                        <h3>Frequently Asked Questions</h3>
+                        <div class="faq-list">
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>How do I cancel a ride?</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>You can cancel your ride from the booking screen or driver tracking screen. Cancellation charges may apply based on the timing.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>How do I add money to my wallet?</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Go to the Wallet section and tap "Add Money". You can use UPI, cards, or net banking to add funds.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>What safety measures are in place?</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>All drivers are verified, live tracking is available, and emergency support is accessible 24/7.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Global variables for Google Maps
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let pickupAutocomplete;
+        let dropAutocomplete;
+        let currentRoute = null;
+        let selectedCabType = 'mini';
+        
+        // Cab pricing per km
+        const cabPricing = {
+            mini: 12,
+            sedan: 15,
+            auto: 8,
+            bike: 5
+        };
+
+        // Initialize Google Maps (from working admin dashboard)
+        function initMap() {
+            console.log('Initializing Google Maps...');
+            
+            // Wait for DOM to be ready
+            if (!document.getElementById('map')) {
+                console.log('Map container not found, retrying...');
+                setTimeout(initMap, 100);
+                return;
+            }
+            
+            // Chennai coordinates - same as admin dashboard
+            const chennai = { lat: 13.0827, lng: 80.2707 };
+
+            // Map options - identical styling and behavior from admin dashboard
+            const mapOptions = {
+                zoom: 12,
+                center: chennai,
+                restriction: {
+                    latLngBounds: {
+                        north: 13.2827,
+                        south: 12.8827,
+                        west: 80.0707,
+                        east: 80.4707
+                    },
+                    strictBounds: false
+                },
+                styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#1e293b"}]
+                    },
+                    {
+                        "featureType": "road",
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#475569"}]
+                    },
+                    {
+                        "featureType": "water",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"color": "#0f172a"}]
+                    }
+                ],
+                // Enhanced map controls - same as admin dashboard
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                },
+                zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_CENTER,
+                },
+                scaleControl: true,
+                streetViewControl: true,
+                fullscreenControl: true
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            directionsService = new google.maps.DirectionsService();
+            
+            // Enhanced directions renderer with custom markers from admin dashboard
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: false,
+                polylineOptions: {
+                    strokeColor: '#3b82f6',
+                    strokeWeight: 6,
+                    strokeOpacity: 0.8
+                },
+                markerOptions: {
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                        scale: 8
+                    }
+                }
+            });
+            directionsRenderer.setMap(map);
+
+            // Initialize autocomplete - same as admin dashboard
+            initAutocomplete();
+            
+            console.log('Google Maps initialized successfully');
+            updateStats();
+        }
+
+        // Initialize autocomplete (from admin dashboard)
+        function initAutocomplete() {
+            const chennai = new google.maps.LatLngBounds(
+                new google.maps.LatLng(12.8827, 80.0707),
+                new google.maps.LatLng(13.2827, 80.4707)
+            );
+
+            // Enhanced autocomplete options - identical to admin dashboard
+            const autocompleteOptions = {
+                bounds: chennai,
+                strictBounds: true,
+                types: ['establishment', 'geocode'],
+                componentRestrictions: { country: 'IN' },
+                fields: ['place_id', 'geometry', 'name', 'formatted_address']
+            };
+
+            pickupAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('pickup-input'),
+                autocompleteOptions
+            );
+
+            dropAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('drop-input'), 
+                autocompleteOptions
+            );
+
+            // Enhanced place change listeners with automatic route calculation
+            pickupAutocomplete.addListener('place_changed', function() {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    console.log('Pickup location selected:', place.name || place.formatted_address);
+                    // Auto-calculate route after both locations are set
+                    setTimeout(checkAndCalculateRoute, 500);
+                }
+            });
+
+            dropAutocomplete.addListener('place_changed', function() {
+                const place = dropAutocomplete.getPlace();
+                if (place.geometry) {
+                    console.log('Drop location selected:', place.name || place.formatted_address);
+                    // Auto-calculate route after both locations are set
+                    setTimeout(checkAndCalculateRoute, 500);
+                }
+            });
+        }
+
+        // Check and automatically calculate route if both locations are set
+        function checkAndCalculateRoute() {
+            const pickup = document.getElementById('pickup-input').value.trim();
+            const drop = document.getElementById('drop-input').value.trim();
+            
+            if (pickup && drop && pickup !== drop) {
+                console.log('Auto-calculating route...');
+                showRoute();
+            }
+        }
+        
+        // Fallback map initialization
+        function initMapFallback() {
+            console.log('Initializing fallback map...');
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; flex-direction: column; text-align: center; padding: 2rem;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem; color: #ff6b35;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">Map Loading...</h3>
+                        <p style="color: rgba(255,255,255,0.7);">Enter locations to calculate route</p>
+                    </div>
+                `;
+            }
+            
+            // Initialize basic autocomplete functionality with location suggestions
+            initLocationSuggestions();
+        }
+
+        // Global error handler for Google Maps
+        window.gm_authFailure = function() {
+            console.error('Google Maps authentication failed');
+            initMapFallback();
+        };
+
+        // Initialize location suggestions for fallback
+        function initLocationSuggestions() {
+            const commonLocations = [
+                'Chennai Central Railway Station',
+                'Chennai Airport (MAA)',
+                'T. Nagar, Chennai',
+                'Anna Nagar, Chennai',
+                'Adyar, Chennai',
+                'Velachery, Chennai',
+                'Tambaram, Chennai',
+                'Guindy, Chennai',
+                'Besant Nagar, Chennai',
+                'Mylapore, Chennai',
+                'Express Avenue Mall, Chennai',
+                'Phoenix MarketCity, Chennai',
+                'Marina Beach, Chennai',
+                'Kapaleeshwarar Temple, Chennai',
+                'IIT Madras, Chennai',
+                'Anna University, Chennai',
+                'Tidel Park, Chennai',
+                'OMR, Chennai',
+                'ECR, Chennai',
+                'Mount Road, Chennai'
+            ];
+
+            function addAutoSuggestion(inputElement) {
+                const suggestionsList = document.createElement('div');
+                suggestionsList.style.cssText = `
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: rgba(0, 0, 0, 0.9);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 0.5rem;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 1000;
+                    display: none;
+                `;
+
+                inputElement.parentElement.style.position = 'relative';
+                inputElement.parentElement.appendChild(suggestionsList);
+
+                inputElement.addEventListener('input', function() {
+                    const value = this.value.toLowerCase();
+                    if (value.length < 2) {
+                        suggestionsList.style.display = 'none';
+                        return;
+                    }
+
+                    const filtered = commonLocations.filter(location => 
+                        location.toLowerCase().includes(value)
+                    );
+
+                    if (filtered.length > 0) {
+                        suggestionsList.innerHTML = filtered.slice(0, 5).map(location => 
+                            `<div style="padding: 0.75rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); color: white;" class="suggestion-item">${location}</div>`
+                        ).join('');
+                        suggestionsList.style.display = 'block';
+
+                        // Add click handlers
+                        suggestionsList.querySelectorAll('.suggestion-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                inputElement.value = this.textContent;
+                                suggestionsList.style.display = 'none';
+                                // Trigger manual route calculation
+                                calculateFallbackRoute();
+                            });
+                        });
+                    } else {
+                        suggestionsList.style.display = 'none';
+                    }
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!inputElement.contains(e.target) && !suggestionsList.contains(e.target)) {
+                        suggestionsList.style.display = 'none';
+                    }
+                });
+            }
+
+            // Add suggestions to both inputs
+            const pickupInput = document.getElementById('pickup-input');
+            const dropInput = document.getElementById('drop-input');
+            
+            if (pickupInput) addAutoSuggestion(pickupInput);
+            if (dropInput) addAutoSuggestion(dropInput);
+        }
+
+        // Fallback route calculation without Google Maps
+        function calculateFallbackRoute() {
+            const pickup = document.getElementById('pickup-input').value;
+            const drop = document.getElementById('drop-input').value;
+
+            if (pickup && drop && pickup !== drop) {
+                // Simulate route calculation with realistic data
+                const baseDistance = Math.random() * 15 + 5; // 5-20 km
+                const duration = Math.ceil(baseDistance * 3 + Math.random() * 10); // Realistic duration
+
+                currentRoute = {
+                    distance: baseDistance,
+                    duration: duration + ' mins',
+                    distanceText: baseDistance.toFixed(1) + ' km'
+                };
+
+                // Update route info
+                document.getElementById('route-distance').textContent = currentRoute.distanceText;
+                document.getElementById('route-duration').textContent = currentRoute.duration;
+                
+                // Calculate and display fare
+                calculateFareWithDetails();
+                
+                // Show route info card
+                document.getElementById('route-info-card').style.display = 'block';
+                
+                // Enable book button
+                document.getElementById('book-btn').disabled = false;
+                document.getElementById('book-btn').style.opacity = '1';
+
+                console.log('Fallback route calculated:', currentRoute);
+            }
+        }
+
+        // Enhanced showRoute function from admin dashboard
+        function showRoute() {
+            const pickupValue = document.getElementById('pickup-input').value.trim();
+            const dropValue = document.getElementById('drop-input').value.trim();
+            
+            if (!pickupValue || !dropValue) {
+                alert('Please enter both pickup and drop locations');
+                return;
+            }
+            
+            if (pickupValue === dropValue) {
+                alert('Pickup and drop locations cannot be the same');
+                return;
+            }
+            
+            console.log('Calculating route from:', pickupValue, 'to:', dropValue);
+            
+            // Enhanced geocoding for better location resolution
+            const geocoder = new google.maps.Geocoder();
+            
+            // Geocode pickup location
+            geocoder.geocode({
+                address: pickupValue,
+                componentRestrictions: { country: 'IN' },
+                bounds: new google.maps.LatLngBounds(
+                    new google.maps.LatLng(12.8827, 80.0707),
+                    new google.maps.LatLng(13.2827, 80.4707)
+                )
+            }, (pickupResults, pickupStatus) => {
+                if (pickupStatus === 'OK') {
+                    // Geocode drop location
+                    geocoder.geocode({
+                        address: dropValue,
+                        componentRestrictions: { country: 'IN' },
+                        bounds: new google.maps.LatLngBounds(
+                            new google.maps.LatLng(12.8827, 80.0707),
+                            new google.maps.LatLng(13.2827, 80.4707)
+                        )
+                    }, (dropResults, dropStatus) => {
+                        if (dropStatus === 'OK') {
+                            calculateEnhancedRoute(pickupResults[0].geometry.location, dropResults[0].geometry.location);
+                        } else {
+                            console.error('Drop location geocoding failed:', dropStatus);
+                            alert('Could not find drop location. Please try a different address.');
+                        }
+                    });
+                } else {
+                    console.error('Pickup location geocoding failed:', pickupStatus);
+                    alert('Could not find pickup location. Please try a different address.');
+                }
+            });
+        }
+        
+        // Enhanced route calculation with multiple options from admin dashboard
+        function calculateEnhancedRoute(origin, destination) {
+            const request = {
+                origin: origin,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+                avoidHighways: false,
+                avoidTolls: false,
+                provideRouteAlternatives: true
+            };
+            
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    console.log('Route calculated successfully');
+                    directionsRenderer.setDirections(result);
+                    
+                    // Use the first (best) route
+                    const route = result.routes[0];
+                    const leg = route.legs[0];
+                    
+                    // Update current route for booking system
+                    currentRoute = {
+                        distance: leg.distance.value / 1000, // Convert to km
+                        duration: leg.duration.text,
+                        distanceText: leg.distance.text
+                    };
+                    
+                    // Update route info
+                    document.getElementById('route-distance').textContent = currentRoute.distanceText;
+                    document.getElementById('route-duration').textContent = currentRoute.duration;
+                    
+                    // Calculate and display fare with enhanced pricing
+                    calculateFareWithDetails();
+                    
+                    // Show route info card
+                    document.getElementById('route-info-card').style.display = 'block';
+                    
+                    // Enable book button
+                    document.getElementById('book-btn').disabled = false;
+                    document.getElementById('book-btn').style.opacity = '1';
+                    
+                    // Fit map bounds to show entire route
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.union(route.bounds);
+                    map.fitBounds(bounds);
+                    
+                    console.log(`Route: ${leg.distance.text}, ${leg.duration.text}`);
+                    
+                } else {
+                    console.error('Route calculation failed:', status);
+                    let errorMessage = 'Route calculation failed. ';
+                    switch (status) {
+                        case 'NOT_FOUND':
+                            errorMessage += 'One or more locations could not be found.';
+                            break;
+                        case 'ZERO_RESULTS':
+                            errorMessage += 'No route could be found between the locations.';
+                            break;
+                        case 'MAX_WAYPOINTS_EXCEEDED':
+                            errorMessage += 'Too many waypoints were provided.';
+                            break;
+                        case 'INVALID_REQUEST':
+                            errorMessage += 'Invalid route request.';
+                            break;
+                        default:
+                            errorMessage += `Error: ${status}`;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        }
+
+        // Enhanced automatic route calculation when both locations are selected
+        function calculateAndDisplayRoute() {
+            // Get current input values instead of relying on stored objects
+            const pickupValue = document.getElementById('pickup-input').value.trim();
+            const dropValue = document.getElementById('drop-input').value.trim();
+            
+            if (!pickupValue || !dropValue) {
+                console.log('Missing pickup or drop location');
+                return;
+            }
+            
+            if (pickupValue === dropValue) {
+                console.log('Pickup and drop locations are the same');
+                return;
+            }
+
+            console.log('Auto-calculating route from:', pickupValue, 'to:', dropValue);
+            
+            // Use direct address-based routing for better reliability
+            const request = {
+                origin: pickupValue,
+                destination: dropValue,
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+                avoidHighways: false,
+                avoidTolls: false,
+                provideRouteAlternatives: false // Disable alternatives for auto-calculation
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    const route = result.routes[0];
+                    const leg = route.legs[0];
+                    currentRoute = {
+                        distance: leg.distance.value / 1000, // Convert to km
+                        duration: leg.duration.text,
+                        distanceText: leg.distance.text
+                    };
+
+                    // Update route info automatically
+                    document.getElementById('route-distance').textContent = currentRoute.distanceText;
+                    document.getElementById('route-duration').textContent = currentRoute.duration;
+                    
+                    // Calculate and display fare automatically
+                    calculateFareWithDetails();
+                    
+                    // Show route info card automatically
+                    document.getElementById('route-info-card').style.display = 'block';
+                    
+                    // Enable book button
+                    document.getElementById('book-btn').disabled = false;
+                    document.getElementById('book-btn').style.opacity = '1';
+                    
+                    // Auto-fit map bounds to show route
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.union(route.bounds);
+                    map.fitBounds(bounds);
+                    
+                    console.log('Auto-route calculated successfully:', currentRoute);
+                } else {
+                    console.error('Auto-route calculation failed:', status);
+                    // Don't show alert for automatic calculations, just log
+                }
+            });
+        }
+
+        // Calculate fare with surge pricing and details
+        function calculateFareWithDetails() {
+            if (!currentRoute) return;
+
+            const baseRate = cabPricing[selectedCabType];
+            const distance = currentRoute.distance;
+            
+            // Add surge pricing (random between 1.0 and 1.5)
+            const surgeMultiplier = 1 + (Math.random() * 0.5);
+            const baseFare = distance * baseRate;
+            const surgeFare = baseFare * surgeMultiplier;
+            
+            // Add booking fee
+            const bookingFee = 20;
+            const totalFare = Math.round(surgeFare + bookingFee);
+
+            document.getElementById('estimated-fare').textContent = totalFare;
+        }
+
+        // Select cab type
+        function selectCabType(type) {
+            selectedCabType = type;
+            
+            // Update UI
+            document.querySelectorAll('.cab-type').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // Update active style
+            document.querySelectorAll('.cab-type').forEach(el => {
+                if (el.dataset.type === type) {
+                    el.style.background = 'rgba(255, 107, 53, 0.2)';
+                    el.style.border = '1px solid #ff6b35';
+                } else {
+                    el.style.background = 'rgba(255, 255, 255, 0.1)';
+                    el.style.border = 'none';
+                }
+            });
+            
+            // Recalculate fare if route exists
+            if (currentRoute) {
+                calculateFareWithDetails();
+            }
+        }
+
+        // Book now functionality
+        function bookNow() {
+            if (!currentRoute) {
+                alert('Please select pickup and drop locations first');
+                return;
+            }
+
+            // Validate that both locations are set
+            const pickupInput = document.getElementById('pickup-input');
+            const dropInput = document.getElementById('drop-input');
+            
+            if (!pickupInput.value.trim() || !dropInput.value.trim()) {
+                alert('Please enter both pickup and drop locations');
+                return;
+            }
+
+            // Show booking animation
+            showDriverSearch();
+            
+            // Realistic booking process - wait 3-5 seconds, then show driver found
+            setTimeout(() => {
+                hideDriverSearch();
+                showDriverFound();
+            }, 4000);
+        }
+
+        // Show driver search overlay
+        function showDriverSearch() {
+            document.getElementById('driverSearchOverlay').style.display = 'flex';
+        }
+
+        // Hide driver search overlay
+        function hideDriverSearch() {
+            document.getElementById('driverSearchOverlay').style.display = 'none';
+        }
+
+        // Show driver found overlay
+        function showDriverFound() {
+            // Update driver found overlay with current route data
+            if (currentRoute) {
+                document.getElementById('driver-distance').textContent = currentRoute.distanceText;
+                document.getElementById('driver-duration').textContent = currentRoute.duration;
+                document.getElementById('driver-fare').textContent = '₹' + document.getElementById('estimated-fare').textContent;
+            }
+            
+            document.getElementById('driverFoundOverlay').style.display = 'flex';
+            
+            // Auto-proceed to success after 3 seconds, but give user a chance to see the details
+            setTimeout(() => {
+                hideDriverFound();
+                showSuccessModal();
+            }, 3000);
+        }
+
+        // Hide driver found overlay
+        function hideDriverFound() {
+            document.getElementById('driverFoundOverlay').style.display = 'none';
+        }
+
+        // Show success modal
+        function showSuccessModal() {
+            document.getElementById('success-modal').style.display = 'flex';
+        }
+
+        // Close success modal
+        function closeSuccessModal() {
+            document.getElementById('success-modal').style.display = 'none';
+            
+            // Reset the booking form completely
+            clearRoute();
+            
+            // Reset any active states
+            const cabTypes = document.querySelectorAll('.cab-type');
+            cabTypes.forEach(type => type.classList.remove('selected'));
+            
+            // Show a brief confirmation message
+            setTimeout(() => {
+                alert('You can book another ride now!');
+            }, 500);
+        }
+
+        // Clear route and reset form
+        function clearRoute() {
+            document.getElementById('pickup-input').value = '';
+            document.getElementById('drop-input').value = '';
+            document.getElementById('route-info-card').style.display = 'none';
+            document.getElementById('book-btn').disabled = true;
+            document.getElementById('book-btn').style.opacity = '0.5';
+            directionsRenderer.setDirections({routes: []});
+            currentRoute = null;
+        }
+
+        // Driver action functions
+        function callDriver() {
+            alert('Calling driver...');
+        }
+
+        function messageDriver() {
+            alert('Opening chat with driver...');
+        }
+
+        function trackDriver() {
+            alert('Tracking driver location...');
+        }
+
+        function cancelRide() {
+            if (confirm('Are you sure you want to cancel this ride?')) {
+                hideDriverFound();
+                clearRoute();
+                alert('Ride cancelled successfully');
+            }
+        }
+
+        function cancelSearch() {
+            hideDriverSearch();
+        }
+
+        // Update coordinates display
+        function updateCoordinatesDisplay(lat, lng) {
+            document.getElementById('coordinates').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    map.setCenter(pos);
+                    updateCoordinatesDisplay(pos.lat, pos.lng);
+                }, () => {
+                    alert('Error: The Geolocation service failed.');
+                });
+            } else {
+                alert('Error: Your browser doesn\'t support geolocation.');
+            }
+        }
+
+        // Update real-time stats (mobile version)
+        function updateStats() {
+            // This can be connected to real data later
+            setInterval(() => {
+                // Update any real-time data here
+            }, 5000);
+        }
+
+        // Mobile navigation functions
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+            
+            // Update bottom nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+        }
+
+        function toggleProfileMenu() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleMobileMenu() {
+            // Toggle mobile menu if it exists
+            const mobileMenu = document.querySelector('.mobile-menu');
+            if (mobileMenu) {
+                mobileMenu.classList.toggle('active');
+            } else {
+                // If no mobile menu, show profile dropdown
+                toggleProfileMenu();
+            }
+        }
+
+        function swapLocations() {
+            const pickup = document.getElementById('pickup-input').value;
+            const drop = document.getElementById('drop-input').value;
+            
+            document.getElementById('pickup-input').value = drop;
+            document.getElementById('drop-input').value = pickup;
+        }
+
+        // Test autocomplete functionality
+        function testAutocomplete() {
+            console.log('Testing autocomplete...');
+            const pickupInput = document.getElementById('pickup-input');
+            const dropInput = document.getElementById('drop-input');
+            
+            console.log('Pickup input:', pickupInput);
+            console.log('Drop input:', dropInput);
+            console.log('Pickup autocomplete:', pickupAutocomplete);
+            console.log('Drop autocomplete:', dropAutocomplete);
+            
+            if (pickupInput) {
+                pickupInput.focus();
+                console.log('Focused pickup input');
+            }
+        }
+
+        // Initialize cab selection and test
+        document.addEventListener('DOMContentLoaded', function() {
+            selectCabType('mini');
+            
+            // Test autocomplete after a delay to ensure Google Maps is loaded
+            setTimeout(() => {
+                testAutocomplete();
+            }, 2000);
+        });
+
+        // ===== ENHANCED FUNCTIONS FROM DESKTOP DASHBOARD =====
+
+        // Enhanced Real-time Stats Updates (from desktop dashboard)
+        function updateStats() {
+            const cabs = document.getElementById('available-cabs');
+            const drivers = document.getElementById('active-drivers');
+            const waitTime = document.getElementById('wait-time');
+            const onlineUsers = document.getElementById('online-users');
+            
+            if (cabs && drivers && waitTime && onlineUsers) {
+                // Simulate real-time updates with more realistic ranges
+                setInterval(() => {
+                    cabs.textContent = Math.floor(Math.random() * 8) + 15; // 15-22 cabs
+                    drivers.textContent = Math.floor(Math.random() * 10) + 20; // 20-29 drivers
+                    waitTime.textContent = Math.floor(Math.random() * 4) + 2 + ' min'; // 2-5 min
+                    onlineUsers.textContent = Math.floor(Math.random() * 30) + 120; // 120-149 users
+                }, 5000);
+            }
+        }
+
+        // Enhanced Route Calculation with Traffic Data
+        function enhanceRouteByRole(result) {
+            console.log('Enhanced route calculation: Traffic data and analytics available');
+            if (result.routes.length > 1) {
+                console.log(`${result.routes.length} alternate routes available`);
+                
+                // Show alternate routes info
+                const routeInfo = document.getElementById('route-info-card');
+                if (routeInfo) {
+                    const alternateInfo = document.createElement('div');
+                    alternateInfo.style.cssText = 'font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-top: 0.5rem;';
+                    alternateInfo.textContent = `${result.routes.length - 1} alternate routes available`;
+                    routeInfo.appendChild(alternateInfo);
+                }
+            }
+        }
+
+        // Enhanced Fare Calculation with Detailed Breakdown
+        function calculateFareWithDetails() {
+            if (!currentRoute) return;
+
+            const baseRate = cabPricing[selectedCabType] || 12;
+            const distance = currentRoute.distance;
+            const baseFare = 50; // Base fare for all rides
+            const distanceFare = Math.round(distance * baseRate);
+            const totalFare = baseFare + distanceFare;
+            
+            // Apply time-based surge pricing
+            const surgeMultiplier = getSurgeMultiplier();
+            const finalFare = Math.round(totalFare * surgeMultiplier);
+            
+            document.getElementById('estimated-fare').textContent = finalFare;
+            
+            // Enhanced fare display with breakdown
+            enhanceFareDisplayByRole(baseFare, distanceFare, surgeMultiplier, finalFare);
+        }
+
+        // Surge Pricing Calculator
+        function getSurgeMultiplier() {
+            const hour = new Date().getHours();
+            // Peak hours: 8-10 AM and 6-8 PM
+            if ((hour >= 8 && hour <= 10) || (hour >= 18 && hour <= 20)) {
+                return 1.5; // 1.5x surge during peak hours
+            }
+            return 1.0; // Normal pricing
+        }
+
+        // Enhanced Fare Display
+        function enhanceFareDisplayByRole(baseFare, distanceFare, surgeMultiplier, finalFare) {
+            console.log('Enhanced fare breakdown:', {
+                baseFare,
+                distanceFare, 
+                surgeMultiplier,
+                finalFare,
+                cabType: selectedCabType
+            });
+            
+            if (surgeMultiplier > 1.0) {
+                console.log(`Peak hour pricing: ${surgeMultiplier}x surge applied`);
+                
+                // Show surge pricing notification
+                const fareContainer = document.querySelector('.fare-estimate');
+                if (fareContainer && !fareContainer.querySelector('.surge-notice')) {
+                    const surgeNotice = document.createElement('div');
+                    surgeNotice.className = 'surge-notice';
+                    surgeNotice.style.cssText = 'font-size: 0.7rem; color: #ff6b35; margin-top: 0.25rem;';
+                    surgeNotice.textContent = `Peak hour pricing: ${surgeMultiplier}x surge`;
+                    fareContainer.appendChild(surgeNotice);
+                }
+            }
+        }
+
+        // Enhanced Booking Data Preparation
+        function prepareBookingData() {
+            return {
+                pickup: document.getElementById('pickup-input').value,
+                drop: document.getElementById('drop-input').value,
+                cabType: selectedCabType,
+                route: currentRoute,
+                fare: document.getElementById('estimated-fare').textContent,
+                timestamp: new Date().toISOString(),
+                surgeMultiplier: getSurgeMultiplier(),
+                bookingId: 'CB' + Date.now(),
+                userId: 'user_' + Math.random().toString(36).substr(2, 9)
+            };
+        }
+
+        // Enhanced Driver Assignment Simulation
+        function simulateDriverAssignment() {
+            const drivers = [
+                {name: 'Karthik Kumar', vehicle: 'Swift Dzire', number: 'TN01AB1234', rating: 4.8, phone: '+91 9876543210'},
+                {name: 'Rajesh Sharma', vehicle: 'Honda City', number: 'TN09CD5678', rating: 4.9, phone: '+91 9876543211'},
+                {name: 'Suresh Babu', vehicle: 'Hyundai Verna', number: 'TN07EF9012', rating: 4.7, phone: '+91 9876543212'},
+                {name: 'Mohan Kumar', vehicle: 'Toyota Etios', number: 'TN02GH3456', rating: 4.6, phone: '+91 9876543213'},
+                {name: 'Prakash Raj', vehicle: 'Maruti Baleno', number: 'TN05IJ7890', rating: 4.8, phone: '+91 9876543214'}
+            ];
+            
+            const randomIndex = Math.floor(Math.random() * drivers.length);
+            const selectedDriver = drivers[randomIndex];
+            
+            return {
+                ...selectedDriver,
+                eta: Math.floor(Math.random() * 6) + 3, // 3-8 minutes
+                distance: (Math.random() * 2 + 0.5).toFixed(1) + ' km' // 0.5-2.5 km
+            };
+        }
+
+        // Enhanced Booking Process
+        function bookNowEnhanced() {
+            if (!currentRoute) {
+                alert('Please select a route first');
+                return;
+            }
+
+            // Prepare enhanced booking data
+            const bookingData = prepareBookingData();
+            
+            // Show driver search with enhanced animation
+            showDriverSearch();
+            
+            setTimeout(() => {
+                hideDriverSearch();
+                
+                // Simulate driver assignment
+                const driverAssignment = simulateDriverAssignment();
+                
+                // Update success modal with enhanced driver info
+                updateSuccessModal(driverAssignment);
+                
+                // Show enhanced success modal
+                showEnhancedSuccessModal();
+                
+                // Handle booking by role
+                handleBookingByRole(bookingData, driverAssignment);
+            }, 3000);
+        }
+
+        // Update Success Modal with Driver Info
+        function updateSuccessModal(driverAssignment) {
+            document.getElementById('driver-name').textContent = driverAssignment.name;
+            document.getElementById('vehicle-info').textContent = driverAssignment.vehicle;
+            document.getElementById('vehicle-number').textContent = driverAssignment.number;
+            document.getElementById('eta').textContent = driverAssignment.eta + ' minutes';
+        }
+
+        // Show Enhanced Success Modal
+        function showEnhancedSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+
+        // Enhanced Success Modal Close
+        function closeModal() {
+            const modal = document.getElementById('success-modal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            
+            // Reset form with enhanced cleanup
+            clearRouteEnhanced();
+        }
+
+        // Enhanced Route Clear
+        function clearRouteEnhanced() {
+            document.getElementById('pickup-input').value = '';
+            document.getElementById('drop-input').value = '';
+            document.getElementById('route-info-card').style.display = 'none';
+            document.getElementById('book-btn').disabled = true;
+            document.getElementById('book-btn').style.opacity = '0.5';
+            directionsRenderer.setDirections({routes: []});
+            currentRoute = null;
+            
+            // Clear surge pricing notices
+            const surgeNotices = document.querySelectorAll('.surge-notice');
+            surgeNotices.forEach(notice => notice.remove());
+        }
+
+        // Enhanced Role-based Booking Handling
+        function handleBookingByRole(bookingData, driverAssignment) {
+            const userRole = getUserRole();
+            
+            console.log('Enhanced booking created:', {
+                ...bookingData,
+                driverAssignment,
+                userRole,
+                features: {
+                    canTrackRide: true,
+                    canContactDriver: true,
+                    canRateRide: true,
+                    canReassignDriver: userRole === 'ROLE_ADMIN',
+                    canModifyRoute: userRole === 'ROLE_ADMIN',
+                    canApplyDiscounts: userRole === 'ROLE_ADMIN',
+                    canViewAnalytics: userRole === 'ROLE_ADMIN'
+                }
+            });
+        }
+
+        // Get User Role
+        function getUserRole() {
+            return document.body.getAttribute('data-user-role') || 'ROLE_USER';
+        }
+
+        // Enhanced Ride Tracking
+        function trackRide() {
+            alert('Opening enhanced ride tracking with real-time location updates...');
+            // Here you would redirect to an enhanced tracking page
+        }
+
+        // Management Card Functions
+        function toggleManagementCards() {
+            const container = document.getElementById('management-cards-container');
+            const toggle = document.getElementById('management-toggle');
+            
+            if (container.style.display === 'none') {
+                container.style.display = 'grid';
+                toggle.className = 'fas fa-chevron-up';
+            } else {
+                container.style.display = 'none';
+                toggle.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function openFleetManagement() {
+            alert('Opening Fleet Management Dashboard...\n\n• Vehicle Locations\n• Driver Status\n• Maintenance Schedules\n• Performance Metrics');
+        }
+
+        function openPerformanceAnalytics() {
+            alert('Opening Performance Analytics...\n\n• Revenue Reports\n• Driver Performance\n• Customer Satisfaction\n• Route Efficiency');
+        }
+
+        function openUserManagement() {
+            alert('Opening User Management...\n\n• User Accounts\n• Ride History\n• Payment Management\n• Support Tickets');
+        }
+
+        function openSystemSettings() {
+            alert('Opening System Settings...\n\n• Pricing Configuration\n• Service Areas\n• Notification Settings\n• Security Options');
+        }
+
+        // Enhanced cab pricing with more options
+        const cabPricing = {
+            'mini': 12,
+            'premium': 18,
+            'luxury': 25,
+            'auto': 8,
+            'bike': 5
+        };
+
+        // Override the original bookNow function to use enhanced version
+        window.bookNow = bookNowEnhanced;
+
+        // Initialize enhanced features on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize stats updates
+            updateStats();
+            
+            // Initialize enhanced features
+            console.log('Enhanced mobile dashboard features initialized');
+            
+            // Set default cab type to mini with enhanced styling
+            setTimeout(() => {
+                selectCabType('mini');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

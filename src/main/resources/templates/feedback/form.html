@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Submit Feedback - CabEase</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h2>Submit Feedback</h2>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Booking Details</h5>
+                <p><strong>Cab:</strong> <span th:text="${booking.cab.model + ' (' + booking.cab.cabNumber + ')'}"></span></p>
+                <p><strong>From:</strong> <span th:text="${booking.pickupLocation}"></span></p>
+                <p><strong>To:</strong> <span th:text="${booking.dropLocation}"></span></p>
+                <p><strong>Date:</strong> <span th:text="${#temporals.format(booking.bookingDateTime, 'yyyy-MM-dd HH:mm')}"></span></p>
+            </div>
+        </div>
+        <form th:action="@{/feedback}" method="post">
+            <input type="hidden" name="bookingId" th:value="${booking.id}">
+            <div class="mb-3">
+                <label for="rating" class="form-label">Rating (1-5)</label>
+                <select class="form-control" id="rating" name="rating" required>
+                    <option value="">Select Rating</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="comment" class="form-label">Comments</label>
+                <textarea class="form-control" id="comment" name="comment" rows="4" placeholder="Share your experience..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            <a href="/bookings" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

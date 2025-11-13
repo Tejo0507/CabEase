@@ -1,0 +1,15 @@
+# Ignore H2 DB files and backups
+*.mv.db
+*.h2.db
+*.trace.db
+backups/
+
+# Build artifacts
+/target/
+
+# IDE/local
+.idea/
+.vscode/
+.classpath
+.project
+*.iml

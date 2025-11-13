@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: cabease-postgres
+    restart: unless-stopped
+    command: postgres -c timezone=Asia/Kolkata -c log_timezone=Asia/Kolkata
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-cabease}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cabease_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-cabease}
+      - TZ=Asia/Kolkata
+      - PGTZ=Asia/Kolkata
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: cabease-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@cabease.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:

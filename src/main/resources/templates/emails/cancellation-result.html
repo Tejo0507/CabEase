@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title ?: 'Cancellation Result'} + ' - CabEase'"></title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        .success-icon {
+            color: #28a745;
+        }
+        .error-icon {
+            color: #dc3545;
+        }
+        .warning-icon {
+            color: #ffc107;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .message {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .booking-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .booking-info h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .actions {
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            text-decoration: none;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .detail-row {
+                flex-direction: column;
+            }
+            .detail-value {
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚗 CabEase</div>
+        
+        <!-- Success Icon -->
+        <div th:if="${success}" class="icon success-icon">✅</div>
+        <!-- Error Icon -->
+        <div th:if="${error}" class="icon error-icon">❌</div>
+        <!-- Warning Icon -->
+        <div th:if="${!success and !error}" class="icon warning-icon">⚠️</div>
+        
+        <h1 th:text="${title ?: 'Cancellation Result'}"></h1>
+        
+        <!-- Success Message -->
+        <div th:if="${success}" class="message success-message">
+            <div th:text="${success}"></div>
+            <div th:if="${message}" th:text="${message}" style="margin-top: 10px; font-style: italic;"></div>
+        </div>
+        
+        <!-- Error Message -->
+        <div th:if="${error}" class="message error-message">
+            <div th:text="${error}"></div>
+        </div>
+        
+        <!-- Booking Information -->
+        <div th:if="${booking}" class="booking-info">
+            <h3>📋 Booking Details</h3>
+            <div class="detail-row">
+                <span class="detail-label">Booking ID:</span>
+                <span class="detail-value" th:text="${booking.id}"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Pickup Location:</span>
+                <span class="detail-value" th:text="${booking.pickupLocation}"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Drop Location:</span>
+                <span class="detail-value" th:text="${booking.dropLocation}"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value" th:text="${booking.status.displayName}"></span>
+            </div>
+            <div class="detail-row" th:if="${booking.totalFare}">
+                <span class="detail-label">Fare:</span>
+                <span class="detail-value">₹<span th:text="${booking.totalFare}"></span></span>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="/booking-dashboard" class="btn btn-primary">
+                🚗 Book Another Ride
+            </a>
+            <a href="/bookings" class="btn btn-secondary">
+                📋 View My Bookings
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? Contact us at <a href="mailto:support@cabease.com">support@cabease.com</a></p>
+            <p>© 2025 CabEase. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

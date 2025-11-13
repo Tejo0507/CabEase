@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title th:text="${cab.id != null ? 'Edit Cab' : 'Add Cab'} + ' - CabEase'"></title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h2 th:text="${cab.id != null ? 'Edit Cab' : 'Add New Cab'}"></h2>
+        <form th:action="${cab.id != null ? '/admin/cabs/edit/' + cab.id : '/admin/cabs'}" method="post">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="cabNumber" class="form-label">Cab Number</label>
+                        <input type="text" class="form-control" id="cabNumber" name="cabNumber" th:value="${cab.cabNumber}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="model" class="form-label">Model</label>
+                        <input type="text" class="form-control" id="model" name="model" th:value="${cab.model}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="driverId" class="form-label">Driver</label>
+                        <select class="form-control" id="driverId" name="driverId">
+                            <option value="">Select Driver (Optional)</option>
+                            <option th:each="driver : ${drivers}" th:value="${driver.id}" th:text="${driver.name}"
+                                    th:selected="${cab.driver != null and cab.driver.id == driver.id}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="available" class="form-label">Available</label>
+                        <select class="form-control" id="available" name="available">
+                            <option value="true" th:selected="${cab.available}">Yes</option>
+                            <option value="false" th:selected="${!cab.available}">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="/admin/cabs" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
