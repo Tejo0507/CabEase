@@ -13,3 +13,8 @@ backups/
 .classpath
 .project
 *.iml
+
+# Sensitive configuration files
+src/main/resources/application.properties
+application.properties
+**/application.properties

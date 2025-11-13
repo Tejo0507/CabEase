@@ -17,7 +17,6 @@ spring.jpa.properties.hibernate.jdbc.time_zone=Asia/Kolkata
 # spring.h2.console.path=/h2-console
 
 # JPA Configuration
-# Changed from create-drop to update to preserve data permanently
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
@@ -26,9 +25,6 @@ spring.sql.init.mode=never
 spring.jpa.generate-ddl=true
 
 # Disable Flyway
-spring.flyway.enabled=false
-
-# Disable Flyway autoconfiguration
 spring.flyway.enabled=false
 
 # Server Configuration
@@ -42,18 +38,18 @@ spring.thymeleaf.suffix=.html
 # Email Configuration
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=tejo.singaporeserver@gmail.com
-spring.mail.password=sharscxnfjdkscup
+spring.mail.username=your-email@gmail.com
+spring.mail.password=your-app-password
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 spring.mail.properties.mail.smtp.starttls.required=true
 spring.mail.properties.mail.debug=true
 
 # Gemini AI Configuration
-google.ai.api.key=AIzaSyBboHy2h-3U_oX1g08npI0UwFZQVJvSJIk
+google.ai.api.key=YOUR_GEMINI_API_KEY_HERE
 
 # Google Maps Configuration
-google.maps.api.key=AIzaSyCjyzQGcwNLjqnE-aF0uaWaaJbIhLUZ9Ss
+google.maps.api.key=YOUR_GOOGLE_MAPS_API_KEY_HERE
 
 # Logging Configuration
 logging.level.com.cabease=DEBUG
